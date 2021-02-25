@@ -43,8 +43,7 @@ class MessageComposeViewController: UIViewController {
         request.httpBody = jsonString.data(using: .utf8)
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         print(request.allHTTPHeaderFields)
-        let networker = Networker()
-        networker.fetch(fromRequest: request) {
+        Networker.fetch(fromRequest: request) {
             (result: NetworkerResult<SendResponse>) in
             print(result)
         }

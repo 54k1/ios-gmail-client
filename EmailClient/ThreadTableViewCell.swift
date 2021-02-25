@@ -9,11 +9,25 @@ import UIKit
 
 class ThreadTableViewCell: UITableViewCell {
     // MARK: Outlets
-    @IBOutlet weak var starButton: UIButton!
-    @IBOutlet weak var snippetLabel: UILabel!
-    
+
+    @IBOutlet var starButton: UIButton!
+    @IBOutlet var snippetLabel: UILabel!
+
     // MARK: Properties
+
     var threadId: String!
+    var messageId: String! {
+        didSet {
+            Model.shared.fetchMessage(withId: messageId) {
+                message in
+                DispatchQueue.main.async {
+                    self.snippet = message.snippet
+                }
+            }
+        }
+    }
+
+    var threadDetail: ThreadDetail!
     var snippet: String! {
         didSet {
             self.snippetLabel?.text = snippet
@@ -30,7 +44,7 @@ class ThreadTableViewCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
-    
+
     func setThreadId(_ id: String) {
         threadId = id
     }
@@ -38,8 +52,7 @@ class ThreadTableViewCell: UITableViewCell {
     func setSnippet(_ snippet: String) {
         self.snippet = snippet
     }
-    
-    
+
     static let identifier = "ThreadTableViewCell"
     static var nib: UINib {
         return UINib(nibName: String(describing: self), bundle: nil)

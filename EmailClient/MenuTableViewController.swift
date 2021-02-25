@@ -5,8 +5,8 @@
 //  Created by SV on 19/02/21.
 //
 
-import UIKit
 import GoogleSignIn
+import UIKit
 
 protocol MenuItemSelectionDelegate {
     func didSelectMenuItem(_ item: MenuTableViewController.MenuItem)
@@ -14,12 +14,12 @@ protocol MenuItemSelectionDelegate {
 
 class MenuTableViewController: UITableViewController {
     enum MenuItem: String {
-        case inbox, sent
+        case inbox, sent, trash
         case signOut
     }
 
     let menuSections: [[MenuItem]] = [
-        [.inbox, .sent],
+        [.inbox, .sent, .trash],
         [.signOut],
     ]
 
@@ -45,9 +45,14 @@ class MenuTableViewController: UITableViewController {
         guard let sentVC = storyboard?.instantiateViewController(identifier: "folderVC") as? FolderViewController else {
             return
         }
+        guard let trashVC = storyboard?.instantiateViewController(identifier: "folderVC") as? FolderViewController else {
+            return
+        }
         sentVC.setKind(.sent)
+        trashVC.setKind(.trash)
         vcOf[.inbox] = inboxVC
         vcOf[.sent] = sentVC
+        vcOf[.trash] = trashVC
     }
 
     @objc func presentComposeVC() {
@@ -81,7 +86,7 @@ class MenuTableViewController: UITableViewController {
     override func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         let item = menuSections[indexPath.section][indexPath.row]
         switch item {
-        case .inbox, .sent:
+        case .inbox, .sent, .trash:
             let vc = vcOf[item]!
             navigationController?.pushViewController(vc, animated: true)
         case .signOut:

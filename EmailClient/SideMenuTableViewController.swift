@@ -12,7 +12,7 @@ protocol MenuControllerDelegate {
 }
 
 enum MenuItem: String {
-    case inbox, sent
+    case inbox, sent, trash
     case signOut
 }
 
@@ -21,6 +21,7 @@ class SideMenuTableViewController: UITableViewController {
         [
             .inbox,
             .sent,
+            .trash,
         ],
         [
             .signOut,
@@ -60,7 +61,6 @@ class SideMenuTableViewController: UITableViewController {
     }
 
     override func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(indexPath, delegate)
         delegate?.didSelectMenuItem(menuSections[indexPath.section][indexPath.row])
         dismiss(animated: true, completion: nil)
     }

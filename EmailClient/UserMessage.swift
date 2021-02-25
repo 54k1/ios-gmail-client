@@ -25,17 +25,17 @@ import Foundation
  }
  */
 
-struct UserMessage: Codable {
-    let id: String
-    let threadId: String
-    let labelIds: [String] // labels applied to the message
-    let snippet: String // A 'short' part of the message
-    let historyId: String
-    let internalDate: String
+class UserMessage: Codable {
+    var id: String
+    var threadId: String
+    var labelIds: [String] // labels applied to the message
+    var snippet: String // A 'short' part of the message
+    var historyId: String
+    var internalDate: String
     // Message body content parsed into payload
-    let payload: UserMessagePart? // format=FULL
-    let sizeEstimate: Int
-    let raw: String? // filled only when format=RAW
+    var payload: UserMessagePart? // format=FULL
+    var sizeEstimate: Int
+    var raw: String? // filled only when format=RAW
 }
 
 /*
@@ -58,16 +58,16 @@ struct UserMessage: Codable {
    ]
  }
  */
-struct UserMessagePart: Codable {
-    let partId: String
-    let mimeType: String
-    let filename: String
-    let headers: [UserHeader]
-    let body: UserMessagePartBody?
-    let parts: [UserMessagePart]?
+class UserMessagePart: Codable {
+    var partId: String
+    var mimeType: String
+    var filename: String
+    var headers: [UserHeader]
+    var body: UserMessagePartBody?
+    var parts: [UserMessagePart]?
 }
 
-struct UserHeader: Codable {
+class UserHeader: Codable {
     let name: String
     let value: String
 }
@@ -79,7 +79,7 @@ struct UserHeader: Codable {
    "data": string
  }
  */
-struct UserMessagePartBody: Codable {
+class UserMessagePartBody: Codable {
     let attachmentId: String?
     let size: Int
     let data: String?

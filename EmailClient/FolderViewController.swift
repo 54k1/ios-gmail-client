@@ -9,10 +9,10 @@ import GoogleSignIn
 import UIKit
 
 enum FolderKind: String {
-    case inbox = "INBOX", sent = "SENT"
+    case inbox = "INBOX", sent = "SENT", trash = "TRASH"
 }
 
-struct ThreadList: Codable {
+class ThreadListResponse: Codable {
     struct PartThread: Codable {
         let id: String
         let snippet: String
@@ -21,12 +21,13 @@ struct ThreadList: Codable {
 
     var threads: [PartThread]
     let resultSizeEstimate: Int
+    let nextPageToken: String?
 }
 
-struct ThreadDetail: Codable {
-    let id: String
-    let historyId: String
-    let messages: [UserMessage]
+class ThreadDetail: Codable {
+    var id: String
+    var historyId: String
+    var messages: [UserMessage]
 }
 
 class FolderViewController: UIViewController {
@@ -38,33 +39,64 @@ class FolderViewController: UIViewController {
     // MARK: Properties
 
     var kind: FolderKind = .inbox
-    var threadList: ThreadList!
+    // var messageBatch = [MessageList]()
+    // var metaMessages = [MessageList.PartMessage]()
+    var threads = [ThreadListResponse.PartThread]()
+    var nextPageToken: String?
 
+    let batchSize = 20
+    var paginating = false
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        tableView.tableFooterView = UIView()
         tableView.register(ThreadTableViewCell.nib, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         // Do any additional setup after loading the view.
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: "threadCell")
 
+        addLoadingFooter()
         refreshButton.addTarget(self, action: #selector(refreshTable), for: .touchUpInside)
 
         title = kind.rawValue.capitalized
-        print("Folderkind=\(kind.rawValue)")
-        Model.shared.fetchThreadList(withLabel: kind.rawValue) {
-            threadList in
-            self.threadList = threadList
-            self.tableView.reloadData()
-        }
+        // loadThreads()
+
+        // Model.shared.fullSync() {
+        //     threadList in
+        //     self.threads.append(contentsOf: threadList.threads)
+        // Model.shared.fetchThreadList(withLabel: self.kind.rawValue, withToken: nil, maxResults: self.batchSize) {
+        //     threadList in
+        //     self.threads.append(contentsOf: threadList.threads)
+        //     self.nextPageToken = threadList.nextPageToken
+        //     DispatchQueue.main.async {
+        //         self.tableView.reloadData()
+        //     }
+        // }
+        // }
     }
 
     @objc func refreshTable() {
-        Model.shared.fetchThreadList(withLabel: kind.rawValue) {
-            threadList in
-            self.threadList = threadList
-            self.tableView.reloadData()
+        print("refresh")
+        Model.shared.partialSync(of: kind, type: .messageAdded) {
+            addedPartMessages in
+            for partMessage in addedPartMessages {
+                Model.shared.fetchMessage(withId: partMessage.id) {
+                    _ in ()
+                }
+            }
+            // Model.shared.partialSync(of: self.kind, type: .messageDeleted) {
+            //     deletedPartMessages in
+            //     for deleted in deletedPartMessages {
+            //         let index = self.metaMessages.firstIndex(where: {
+            //             partMessage in
+            //             partMessage.id == deleted.id
+            //         })
+            //         self.metaMessages.remove(at: index!)
+            //     }
+            //     DispatchQueue.main.async {
+            //         self.tableView.reloadData()
+            //     }
+            // }
         }
     }
 
@@ -85,25 +117,37 @@ class FolderViewController: UIViewController {
     @IBSegueAction func showThreadDetail(_ coder: NSCoder, sender: Any?, segueIdentifier _: String?) -> ThreadDetailViewController? {
         let vc = ThreadDetailViewController(coder: coder)
         let cell = sender as! MessageTableViewCell
-        vc?.setThreadId(cell.threadId)
+        vc?.threadId = cell.threadId
         return vc
+    }
+
+    func loadNextBatch() {
+        // if let nextPageToken = nextPageToken { Model.shared.fetchThreadList(withLabel: kind.rawValue, withToken: nextPageToken, maxResults: batchSize) { threadList in self.batch.append(threadList) DispatchQueue.main.async {
+        //             self.tableView.reloadData()
+        //         }
+        //     }
+        // }
     }
 }
 
 extension FolderViewController: UITableViewDataSource {
+    func numberOfSections(in _: UITableView) -> Int {
+        1
+    }
+
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        threadList?.threads.count ?? 0
+        threads.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print(ThreadTableViewCell.nib)
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ThreadTableViewCell.identifier, for: indexPath) as? ThreadTableViewCell else {
             return UITableViewCell()
         }
 
         let row = indexPath.row
-        cell.snippet = threadList.threads[row].snippet
-        cell.threadId = threadList.threads[row].id
+        let thread = threads[row]
+        cell.threadId = thread.id
+        cell.snippet = thread.snippet
         return cell
     }
 }
@@ -111,9 +155,49 @@ extension FolderViewController: UITableViewDataSource {
 extension FolderViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as! ThreadTableViewCell
-        let threadID = cell.threadId
+        let threadId = cell.threadId
         let vc = storyboard?.instantiateViewController(identifier: "threadDetailVC") as! ThreadDetailViewController
-        vc.setThreadId(threadID)
+        vc.threadId = threadId
         navigationController?.pushViewController(vc, animated: true)
+    }
+}
+
+extension FolderViewController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard !paginating else {
+            return
+        }
+        paginating = true
+        addLoadingFooter()
+        let position = scrollView.contentOffset.y
+        if position > (tableView.contentSize.height - 100 - scrollView.frame.height) {
+            loadThreads()
+        }
+    }
+}
+
+extension FolderViewController {
+    func loadThreads() {
+        print("LoadThreads")
+        Model.shared.fetchThreadList(withLabel: kind.rawValue, withToken: nextPageToken, maxResults: batchSize) {
+            threadList in
+            self.threads.append(contentsOf: threadList.threads)
+            self.nextPageToken = threadList.nextPageToken
+            DispatchQueue.main.async {
+                self.paginating = false
+                self.tableView.tableFooterView = nil
+                self.tableView.reloadData()
+            }
+        }
+    }
+
+    func addLoadingFooter() {
+        let footer = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 100))
+        let spinner = UIActivityIndicatorView()
+        spinner.center = footer.center
+        spinner.startAnimating()
+        footer.addSubview(spinner)
+        tableView.tableFooterView = footer
+        
     }
 }

@@ -14,22 +14,23 @@ enum HttpError: Error {
 typealias NetworkerResult<T> = Result<T, HttpError>
 
 class Networker {
-    var accessToken: String = ""
-    static var token = ""
-
-    init(withAccessToken accessToken: String) {
-        self.accessToken = accessToken
-    }
-
-    init() {}
-
-    func setAccessToken(_ accessToken: String) {
-        self.accessToken = accessToken
+    static func request(_ request: URLRequest, completionHandler: @escaping (NetworkerResult<Data?>) -> Void) {
+        let task = URLSession.shared.dataTask(with: request) {
+            data, response, error in
+            guard case .none = error else {
+                return
+            }
+            print("response=", response)
+            guard let data = data else {
+                return
+            }
+            completionHandler(.success(data))
+        }
+        task.resume()
     }
 
     func fetch<T: Decodable>(fromURL url: URL, _ completionHandler: @escaping (NetworkerResult<T>) -> Void) {
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(Networker.token)", forHTTPHeaderField: "Authorization")
+        let request = URLRequest(url: url)
         let task = URLSession.shared.dataTask(with: request) {
             data, _, error in
             if let error = error {
@@ -51,11 +52,10 @@ class Networker {
         task.resume()
     }
 
-    func fetch<T: Decodable>(fromRequest request: URLRequest, _ completionHandler: @escaping (NetworkerResult<T>) -> Void) {
+    static func fetch<T: Decodable>(fromRequest request: URLRequest, _ completionHandler: @escaping (NetworkerResult<T>) -> Void) {
         var request = request
-        request.setValue("Bearer \(Networker.token)", forHTTPHeaderField: "Authorization")
         let task = URLSession.shared.dataTask(with: request) {
-            data, _, error in
+            data, response, error in
             if let error = error {
                 print(error)
                 completionHandler(.failure(.badAccess))
@@ -72,6 +72,7 @@ class Networker {
                 // print("Messages: ", list)
             } catch let e {
                 print(T.self)
+                print(response)
                 print(e)
             }
         }

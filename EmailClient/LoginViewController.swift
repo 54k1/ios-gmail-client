@@ -10,6 +10,7 @@ import UIKit
 
 class LoginViewController: UIViewController {
     // MARK: Outlets
+
     @IBOutlet var activityIndicator: UIActivityIndicatorView!
     @IBOutlet var signInButton: GIDSignInButton!
 
@@ -43,7 +44,7 @@ class LoginViewController: UIViewController {
             activityIndicator.startAnimating()
             let vc = storyboard?.instantiateViewController(identifier: "folderVC") as! FolderViewController
             // navigationController?.pushViewController(vc, animated: true)
-            Networker.token = user.authentication!.accessToken!
+            Model.token = user.authentication.accessToken
             print(user.authentication!.accessToken!)
             vc.modalPresentationStyle = .fullScreen
             vc.modalTransitionStyle = .flipHorizontal
