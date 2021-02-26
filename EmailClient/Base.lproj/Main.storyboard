@@ -64,8 +64,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OP9-mh-2dA">
-                                <rect key="frame" x="20" y="79" width="374" height="797"/>
+                            <wkWebView contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="OP9-mh-2dA">
+                                <rect key="frame" x="0.0" y="44" width="414" height="818"/>
                                 <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <wkWebViewConfiguration key="configuration">
                                     <dataDetectorTypes key="dataDetectorTypes" none="YES"/>
@@ -73,7 +73,7 @@
                                     <wkPreferences key="preferences"/>
                                 </wkWebViewConfiguration>
                             </wkWebView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="sybhect" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ywn-B6-bAm">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="sybhect" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ywn-B6-bAm">
                                 <rect key="frame" x="20" y="44" width="76.5" height="27"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="27" id="XLx-uC-ibq"/>
@@ -86,12 +86,10 @@
                         <viewLayoutGuide key="safeArea" id="ibF-g0-Vxf"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="OP9-mh-2dA" firstAttribute="bottom" secondItem="ibF-g0-Vxf" secondAttribute="bottom" constant="14" id="0b2-oV-MX3"/>
-                            <constraint firstItem="ywn-B6-bAm" firstAttribute="top" secondItem="ibF-g0-Vxf" secondAttribute="top" id="86f-So-6ag"/>
-                            <constraint firstItem="ibF-g0-Vxf" firstAttribute="trailing" secondItem="OP9-mh-2dA" secondAttribute="trailing" constant="20" id="8qO-pC-D8r"/>
-                            <constraint firstItem="ywn-B6-bAm" firstAttribute="leading" secondItem="ibF-g0-Vxf" secondAttribute="leading" constant="20" id="kdH-4D-I53"/>
-                            <constraint firstItem="OP9-mh-2dA" firstAttribute="top" secondItem="ywn-B6-bAm" secondAttribute="bottom" constant="8" symbolic="YES" id="lLz-sj-9l1"/>
-                            <constraint firstItem="OP9-mh-2dA" firstAttribute="leading" secondItem="ibF-g0-Vxf" secondAttribute="leading" constant="20" id="tcL-gF-nbJ"/>
+                            <constraint firstItem="OP9-mh-2dA" firstAttribute="bottom" secondItem="ibF-g0-Vxf" secondAttribute="bottom" id="F3z-hG-hW3"/>
+                            <constraint firstItem="OP9-mh-2dA" firstAttribute="top" secondItem="ibF-g0-Vxf" secondAttribute="top" id="g7J-KQ-Twj"/>
+                            <constraint firstItem="OP9-mh-2dA" firstAttribute="leading" secondItem="ibF-g0-Vxf" secondAttribute="leading" id="xsP-b7-3yD"/>
+                            <constraint firstItem="OP9-mh-2dA" firstAttribute="trailing" secondItem="ibF-g0-Vxf" secondAttribute="trailing" id="yp2-eg-hpg"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="Ayf-0y-rMh"/>

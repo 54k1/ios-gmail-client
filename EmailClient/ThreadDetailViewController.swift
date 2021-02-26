@@ -24,6 +24,7 @@ class ThreadDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        webView.navigationDelegate = self
 
         Model.shared.fetchThreadDetail(withId: threadId, completionHandler: {
             threadDetail in
@@ -83,9 +84,20 @@ private extension ThreadDetailViewController {
             htmlContent = content
         }
 
-        print("html=", htmlContent.data)
         webView.loadHTMLString(htmlContent.data, baseURL: nil)
-        webView.frame.size = webView.scrollView.contentSize
-        webView.scrollView.bounces = false
+    }
+}
+
+extension ThreadDetailViewController: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // Set viewport meta tag after loading DOM
+        let javascript = """
+            var meta = document.createElement('meta');
+            meta.setAttribute('name', 'viewport');
+            meta.setAttribute('content', 'width=device-width, intial-scale=auto');
+            document.getElementsByTagName('head')[0].appendChild(meta);
+            """
+
+        webView.evaluateJavaScript(javascript, completionHandler: nil)
     }
 }
