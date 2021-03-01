@@ -13,9 +13,11 @@ class ThreadDetailTableViewCell: UITableViewCell {
     static let nibName = UINib(nibName: "ThreadDetailTableViewCell", bundle: nil)
 
     // MARK: Outlets
+
     @IBOutlet var webView: WKWebView!
-    
+
     // MARK: Properties
+
     var html: String!
     var delegate: ThreadDetailTableViewCellDelegate!
     var indexPath: IndexPath!
@@ -38,25 +40,24 @@ protocol ThreadDetailTableViewCellDelegate {
 }
 
 extension ThreadDetailTableViewCell: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
         // delegate.webView?(webView, didFinish: navigation)
         // delegate.webView(webView, didFinish: navigation)
-         let javascript = """
-             var meta = document.createElement('meta');
-             meta.setAttribute('name', 'viewport');
-             meta.setAttribute('content', 'width=device-width, intial-scale=auto');
-             document.getElementsByTagName('head')[0].appendChild(meta);
-             """
+        let javascript = """
+        var meta = document.createElement('meta');
+        meta.setAttribute('name', 'viewport');
+        meta.setAttribute('content', 'width=device-width, intial-scale=auto');
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        """
 
-         webView.evaluateJavaScript(javascript, completionHandler: nil)
-        
-         let documentHeight = "document.body.scrollHeight"
-         webView.evaluateJavaScript(documentHeight, completionHandler: {
-             result, error in
-             if let height = result as? CGFloat {
+        webView.evaluateJavaScript(javascript, completionHandler: nil)
+
+        let documentHeight = "document.body.scrollHeight"
+        webView.evaluateJavaScript(documentHeight, completionHandler: {
+            result, _ in
+            if let height = result as? CGFloat {
                 self.delegate.didCalculateHeightFor(self, height: height)
             }
         })
-        
     }
 }

@@ -51,6 +51,28 @@ struct MessageList: Codable {
 class Model {
     static let shared = Model()
     static var token: String!
+    enum HistoryId {
+        case notFetched
+        case fetched(String)
+    }
+
+    enum PageToken {
+        case notFetched
+        case fetched(token: String)
+        case exhausted
+
+        func toString() -> String {
+            switch self {
+            case .notFetched, .exhausted:
+                return ""
+            case let .fetched(token):
+                return token
+            }
+        }
+    }
+
+    var nextPageToken: PageToken = .notFetched
+    var latestHistoryId: HistoryId = .notFetched
 
     private init() {}
 
@@ -189,7 +211,7 @@ class Model {
     }
 
     func partialSync(of folder: FolderKind? = nil, type: PartialSyncType = .messageAdded, completionHandler: @escaping ([MessageList.PartMessage]) -> Void) {
-        if let historyId = latestHistoryId {
+        if let historyId = latHistoryId {
             var url = URL(string: "https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=\(historyId)?historyTypes=\(type)")!
             if let folder = folder {
                 url = URL(string: "https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=\(historyId)&labelId=\(folder.rawValue)")!
@@ -224,7 +246,7 @@ class Model {
                     // Up to date
                 }
                 // update historyId
-                self.latestHistoryId = json?.historyId
+                self.latHistoryId = json?.historyId
 
                 completionHandler(updatedMessages)
             }
@@ -233,7 +255,7 @@ class Model {
         }
     }
 
-    var latestHistoryId: String!
+    var latHistoryId: String!
 
     func fullSync(withLabel label: String? = nil, completionHandler: @escaping (ThreadListResponse) -> Void) {
         threadDetailWithId.removeAll()
@@ -242,40 +264,26 @@ class Model {
             for thread in threadList.threads {
                 self.fetchThread(withId: thread.id) { _ in () }
             }
-            self.latestHistoryId = threadList.threads[0].historyId
+            self.latHistoryId = threadList.threads[0].historyId
             completionHandler(threadList)
         }
     }
 }
 
-struct ModelConfiguration {
-    let batchSize: Int
-}
-
-// Threads
-extension Model {
-    // func fetchThread() {
-    //
-    // }
-
-    func fetchThreadList() {}
-}
-
 extension Model {
     func fetchThreadDetail(withId threadId: String, completionHandler: @escaping (ThreadDetail) -> Void) {
         // Just fetch from network now
-        var urlComponents = URLComponents()
-        urlComponents.scheme = "https"
-        urlComponents.host = "gmail.googleapis.com"
-        urlComponents.path = "/gmail/v1/users/me/threads/\(threadId)"
-
-        let request = Self.makeRequest(url: urlComponents.url!)
-        print("request=", request)
+        if let threadDetail = threadDetailWithId[threadId] {
+            completionHandler(threadDetail)
+            return
+        }
+        let request = makeRequest(withMethod: .thread(.get(id: threadId)))
         Networker.fetch(fromRequest: request) {
             (result: NetworkerResult<ThreadDetail>) in
             guard case let .success(threadDetail) = result else {
                 return
             }
+            self.localSync(threadDetail)
             completionHandler(threadDetail)
         }
     }
@@ -285,7 +293,150 @@ extension Model {
     class func makeRequest(url: URL) -> URLRequest {
         var request = URLRequest(url: url)
         request.addValue(Self.authorizationValue, forHTTPHeaderField: Self.authorizationField)
-        print("httpFields=", request.allHTTPHeaderFields)
         return request
+    }
+
+    enum Method {
+        enum MessageMethod {
+            case list
+        }
+
+        case message(MessageMethod)
+        enum ThreadMethod {
+            case list
+            case get(id: String)
+        }
+
+        case thread(ThreadMethod)
+        enum HistoryMethod {
+            case list
+        }
+
+        case history(HistoryMethod)
+
+        func toString() -> String {
+            var path = ""
+            switch self {
+            case let .message(method):
+                path += "/messages"
+                switch method {
+                case .list:
+                    path += ""
+                }
+            case let .thread(method):
+                path += "/threads"
+                switch method {
+                case let .get(id):
+                    path += "/\(id)"
+                case .list:
+                    path += ""
+                }
+            case let .history(method):
+                path += "/history"
+                switch method {
+                case .list:
+                    path += ""
+                }
+            }
+
+            return path
+        }
+    }
+
+    func makeRequest(withMethod method: Method, withQueryItems queryItems: [URLQueryItem]? = nil) -> URLRequest {
+        var urlComponents = URLComponents()
+        urlComponents.scheme = "https"
+        urlComponents.host = "gmail.googleapis.com"
+        urlComponents.path = "/gmail/v1/users/me\(method.toString())"
+
+        urlComponents.queryItems = queryItems
+
+        let request = Self.makeRequest(url: urlComponents.url!)
+        return request
+    }
+}
+
+extension Model {
+    func fetchNextThreadBatch(withSize size: Int, completionHandler: @escaping (ThreadListResponse) -> Void) {
+        if case .exhausted = nextPageToken {
+            // No more threads to load
+            return
+        }
+
+        let request = makeRequest(withMethod: .thread(.list), withQueryItems: [
+            URLQueryItem(name: "maxResults", value: String(size)),
+            URLQueryItem(name: "pageToken", value: nextPageToken.toString()),
+        ])
+
+        Networker.fetch(fromRequest: request) {
+            (result: NetworkerResult<ThreadListResponse>) in
+            guard case let .success(threadListResponse) = result else {
+                return
+            }
+            if let pageToken = threadListResponse.nextPageToken {
+                self.nextPageToken = .fetched(token: pageToken)
+            } else {
+                self.nextPageToken = .exhausted
+            }
+            completionHandler(threadListResponse)
+        }
+    }
+}
+
+extension Model {
+    func localSync(_ threadDetail: ThreadDetail) {
+        threadDetailWithId[threadDetail.id] = threadDetail
+        for message in threadDetail.messages {
+            messageWithId[message.id] = message
+        }
+    }
+
+    // Call intially
+    func fullSync(batchSize size: Int, completionHandler: @escaping (ThreadListResponse) -> Void) {
+        nextPageToken = .notFetched
+        fetchNextThreadBatch(withSize: size, completionHandler: {
+            threadListResponse in
+            if let historyId = threadListResponse.threads.first?.historyId {
+                self.latestHistoryId = .fetched(historyId)
+            }
+            completionHandler(threadListResponse)
+        })
+    }
+
+    func partialSync(folder: FolderKind) {
+        guard case let .fetched(historyId) = latestHistoryId else {
+            NSLog("partialSync called when historyId not set")
+            return
+        }
+        let request = makeRequest(withMethod: .history(.list), withQueryItems: [
+            URLQueryItem(name: "startHistoryId", value: historyId),
+            URLQueryItem(name: "labelId", value: folder.rawValue),
+        ])
+        Networker.fetch(fromRequest: request) {
+            (result: NetworkerResult<HistoryList>) in
+            guard case let .success(historyList) = result else {
+                return
+            }
+            guard let history = historyList.history else {
+                return
+            }
+            for historyObject in history {
+                for addedMessage in historyObject.messagesAdded! {
+                    self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
+                        message in
+                        // self.threadDetailWithId[message.threadId].messages.append(message)
+                        self.threadDetailWithId[message.threadId]?.messages.append(message)
+                    })
+                }
+                for deletedMessage in historyObject.messagesDeleted! {
+                    let threadId = deletedMessage.message.threadId
+                    let messageId = deletedMessage.message.id
+                    var messages = self.threadDetailWithId[threadId]!.messages
+                    messages.remove(at: messages.firstIndex(where: { $0.id == messageId })!)
+                    self.threadDetailWithId[threadId]?.messages = messages
+                    // Update historyId of that thread
+                }
+            }
+        }
     }
 }

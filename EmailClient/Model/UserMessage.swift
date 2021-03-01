@@ -36,7 +36,7 @@ class UserMessage: Codable {
     var payload: UserMessagePart? // format=FULL
     var sizeEstimate: Int
     var raw: String? // filled only when format=RAW
-    
+
     func headerValueFor(key: String) -> String? {
         if let payload = self.payload {
             for header in payload.headers {
@@ -47,9 +47,11 @@ class UserMessage: Codable {
         }
         return nil
     }
+
     var from: String? {
         headerValueFor(key: "From")
     }
+
     var to: String? {
         headerValueFor(key: "To")
     }

@@ -9,9 +9,10 @@ import UIKit
 
 class ThreadTableViewCell: UITableViewCell {
     // MARK: Outlets
+
     @IBOutlet var snippetLabel: UILabel!
-    @IBOutlet weak var fromLabel: UILabel!
-    
+    @IBOutlet var fromLabel: UILabel!
+
     // MARK: Properties
 
     var threadId: String!
@@ -19,9 +20,10 @@ class ThreadTableViewCell: UITableViewCell {
     var threadDetail: ThreadDetail!
     var snippet: String! {
         didSet {
-            self.snippetLabel?.text = snippet
+            snippetLabel?.text = snippet
         }
     }
+
     var from: String! {
         didSet {
             self.fromLabel?.text = from
@@ -43,9 +45,9 @@ class ThreadTableViewCell: UITableViewCell {
     static var nib: UINib {
         return UINib(nibName: String(describing: self), bundle: nil)
     }
-    
+
     override func prepareForReuse() {
-        self.snippet = ""
-        self.fromLabel.text = ""
+        snippet = ""
+        fromLabel.text = ""
     }
 }

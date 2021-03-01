@@ -43,8 +43,9 @@ class FolderViewController: UIViewController {
     // var metaMessages = [MessageList.PartMessage]()
     var threads = [ThreadListResponse.PartThread]()
     var nextPageToken: String?
+    var isFetchingNextBatch = false
 
-    let batchSize = 40
+    let batchSize = 10
     var paginating = false
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,78 +57,21 @@ class FolderViewController: UIViewController {
         tableView.dataSource = self
 
         addLoadingFooter()
-        refreshButton.addTarget(self, action: #selector(refreshTable), for: .touchUpInside)
 
         title = kind.rawValue.capitalized
-        loadThreads()
         // loadThreads()
-
-        // Model.shared.fullSync() {
-        //     threadList in
-        //     self.threads.append(contentsOf: threadList.threads)
-        // Model.shared.fetchThreadList(withLabel: self.kind.rawValue, withToken: nil, maxResults: self.batchSize) {
-        //     threadList in
-        //     self.threads.append(contentsOf: threadList.threads)
-        //     self.nextPageToken = threadList.nextPageToken
-        //     DispatchQueue.main.async {
-        //         self.tableView.reloadData()
-        //     }
-        // }
-        // }
-    }
-
-    @objc func refreshTable() {
-        print("refresh")
-        Model.shared.partialSync(of: kind, type: .messageAdded) {
-            addedPartMessages in
-            for partMessage in addedPartMessages {
-                Model.shared.fetchMessage(withId: partMessage.id) {
-                    _ in ()
-                }
-            }
-            // Model.shared.partialSync(of: self.kind, type: .messageDeleted) {
-            //     deletedPartMessages in
-            //     for deleted in deletedPartMessages {
-            //         let index = self.metaMessages.firstIndex(where: {
-            //             partMessage in
-            //             partMessage.id == deleted.id
-            //         })
-            //         self.metaMessages.remove(at: index!)
-            //     }
-            //     DispatchQueue.main.async {
-            //         self.tableView.reloadData()
-            //     }
-            // }
-        }
+        loadNextBatch()
     }
 
     func setKind(_ kind: FolderKind) {
         self.kind = kind
     }
 
-    /*
-     // MARK: - Navigation
-
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-         // Get the new view controller using segue.destination.
-         // Pass the selected object to the new view controller.
-     }
-     */
-
     @IBSegueAction func showThreadDetail(_ coder: NSCoder, sender: Any?, segueIdentifier _: String?) -> ThreadDetailViewController? {
         let vc = ThreadDetailViewController(coder: coder)
         let cell = sender as! MessageTableViewCell
         vc?.threadId = cell.threadId
         return vc
-    }
-
-    func loadNextBatch() {
-        // if let nextPageToken = nextPageToken { Model.shared.fetchThreadList(withLabel: kind.rawValue, withToken: nextPageToken, maxResults: batchSize) { threadList in self.batch.append(threadList) DispatchQueue.main.async {
-        //             self.tableView.reloadData()
-        //         }
-        //     }
-        // }
     }
 }
 
@@ -149,7 +93,7 @@ extension FolderViewController: UITableViewDataSource {
         let thread = threads[row]
         cell.threadId = thread.id
         cell.snippet = thread.snippet
-        
+
         Model.shared.fetchThreadDetail(withId: thread.id, completionHandler: {
             threadDetail in
             DispatchQueue.main.async {
@@ -168,26 +112,13 @@ extension FolderViewController: UITableViewDelegate {
         vc.threadId = threadId
         navigationController?.pushViewController(vc, animated: true)
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+
+    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         return 105
     }
 }
 
 extension FolderViewController {
-    func loadThreads() {
-        Model.shared.fetchThreadList(withLabel: kind.rawValue, withToken: nextPageToken, maxResults: batchSize) {
-            threadList in
-            self.threads.append(contentsOf: threadList.threads)
-            self.nextPageToken = threadList.nextPageToken
-            DispatchQueue.main.async {
-                self.paginating = false
-                self.tableView.tableFooterView = nil
-                self.tableView.reloadData()
-            }
-        }
-    }
-
     func addLoadingFooter() {
         let footer = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 100))
         let spinner = UIActivityIndicatorView()
@@ -195,5 +126,30 @@ extension FolderViewController {
         spinner.startAnimating()
         footer.addSubview(spinner)
         tableView.tableFooterView = footer
+    }
+}
+
+// Methods related to loading new batch once scrolled to bottom
+extension FolderViewController: UIScrollViewDelegate {
+    func loadNextBatch() {
+        isFetchingNextBatch = true
+        Model.shared.fetchNextThreadBatch(withSize: batchSize, completionHandler: {
+            threadListResponse in
+            self.threads.append(contentsOf: threadListResponse.threads)
+            self.isFetchingNextBatch = false
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        })
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard !isFetchingNextBatch else {
+            return
+        }
+        let position = scrollView.contentOffset.y
+        if position > (tableView.contentSize.height - 100 - scrollView.frame.height) {
+            loadNextBatch()
+        }
     }
 }

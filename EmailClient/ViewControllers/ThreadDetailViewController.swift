@@ -12,16 +12,18 @@ import WebKit
 
 class ThreadDetailViewController: UIViewController {
     // MARK: Properties
+
     var threadId: String!
     var threadDetail: ThreadDetail!
     var scrollHeight = [IndexPath: CGFloat]()
 
     // MARK: Outlets
-    @IBOutlet weak var tableView: UITableView!
-    
+
+    @IBOutlet var tableView: UITableView!
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(ThreadDetailTableViewCell.nibName, forCellReuseIdentifier: ThreadDetailTableViewCell.identifier)
@@ -39,16 +41,16 @@ class ThreadDetailViewController: UIViewController {
 }
 
 extension ThreadDetailViewController: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in _: UITableView) -> Int {
         threadDetail?.messages.count ?? 0
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         // Just webview displaying content, (header, footer) are seperate
         1
     }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+    func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let bundle = Bundle(for: ThreadDetailTableViewCell.self)
         let nibName = String(describing: ThreadDetailTableViewCell.self)
         let nib = UINib(nibName: nibName, bundle: bundle)
@@ -66,18 +68,19 @@ extension ThreadDetailViewController: UITableViewDataSource {
 }
 
 extension ThreadDetailViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let label = UILabel()
         label.text = "From \(threadDetail.messages[section].from!)"
         return label
     }
-    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+
+    func tableView(_: UITableView, viewForFooterInSection _: Int) -> UIView? {
         let label = UILabel()
         label.text = "Reply"
         return label
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+
+    func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if let height = scrollHeight[indexPath] {
             return height
         }
@@ -86,6 +89,7 @@ extension ThreadDetailViewController: UITableViewDelegate {
 }
 
 // MARK: Render
+
 private extension ThreadDetailViewController {
     func render(_ message: UserMessage, at cell: ThreadDetailTableViewCell) {
         guard case let .success(component) = extract(message.payload!) else {
@@ -121,7 +125,7 @@ private extension ThreadDetailViewController {
             htmlContent = content
         }
 
-        cell.webView.loadHTMLString("<html><head><meta charset='utf8'><meta name = 'viewport' content = 'width=device-width'></head>"+htmlContent.data+"</html>", baseURL: nil)
+        cell.webView.loadHTMLString("<html><head><meta charset='utf8'><meta name = 'viewport' content = 'width=device-width'></head>" + htmlContent.data + "</html>", baseURL: nil)
     }
 }
 
@@ -134,5 +138,12 @@ extension ThreadDetailViewController: ThreadDetailTableViewCellDelegate {
             self.tableView.beginUpdates()
             self.tableView.endUpdates()
         }
+    }
+}
+
+// Sync
+extension ThreadDetailViewController {
+    @objc func partialSync() {
+        // let latestHistoryId = threads[0].
     }
 }
