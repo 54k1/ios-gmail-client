@@ -44,7 +44,7 @@ class FolderViewController: UIViewController {
     var threads = [ThreadListResponse.PartThread]()
     var nextPageToken: String?
 
-    let batchSize = 20
+    let batchSize = 40
     var paginating = false
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,6 +59,7 @@ class FolderViewController: UIViewController {
         refreshButton.addTarget(self, action: #selector(refreshTable), for: .touchUpInside)
 
         title = kind.rawValue.capitalized
+        loadThreads()
         // loadThreads()
 
         // Model.shared.fullSync() {
@@ -148,6 +149,13 @@ extension FolderViewController: UITableViewDataSource {
         let thread = threads[row]
         cell.threadId = thread.id
         cell.snippet = thread.snippet
+        
+        Model.shared.fetchThreadDetail(withId: thread.id, completionHandler: {
+            threadDetail in
+            DispatchQueue.main.async {
+                cell.from = threadDetail.messages[0].from
+            }
+        })
         return cell
     }
 }
@@ -160,25 +168,14 @@ extension FolderViewController: UITableViewDelegate {
         vc.threadId = threadId
         navigationController?.pushViewController(vc, animated: true)
     }
-}
-
-extension FolderViewController: UIScrollViewDelegate {
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard !paginating else {
-            return
-        }
-        paginating = true
-        addLoadingFooter()
-        let position = scrollView.contentOffset.y
-        if position > (tableView.contentSize.height - 100 - scrollView.frame.height) {
-            loadThreads()
-        }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 105
     }
 }
 
 extension FolderViewController {
     func loadThreads() {
-        print("LoadThreads")
         Model.shared.fetchThreadList(withLabel: kind.rawValue, withToken: nextPageToken, maxResults: batchSize) {
             threadList in
             self.threads.append(contentsOf: threadList.threads)
@@ -198,6 +195,5 @@ extension FolderViewController {
         spinner.startAnimating()
         footer.addSubview(spinner)
         tableView.tableFooterView = footer
-        
     }
 }

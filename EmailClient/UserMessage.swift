@@ -36,6 +36,23 @@ class UserMessage: Codable {
     var payload: UserMessagePart? // format=FULL
     var sizeEstimate: Int
     var raw: String? // filled only when format=RAW
+    
+    func headerValueFor(key: String) -> String? {
+        if let payload = self.payload {
+            for header in payload.headers {
+                if header.name == key {
+                    return header.value
+                }
+            }
+        }
+        return nil
+    }
+    var from: String? {
+        headerValueFor(key: "From")
+    }
+    var to: String? {
+        headerValueFor(key: "To")
+    }
 }
 
 /*

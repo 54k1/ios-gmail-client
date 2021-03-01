@@ -16,6 +16,8 @@
 		B024066E25DA510A00884D1E /* MessageComposeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024066D25DA510A00884D1E /* MessageComposeViewController.swift */; };
 		B024067325DA7E7700884D1E /* FolderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024067225DA7E7700884D1E /* FolderViewController.swift */; };
 		B024067B25DAA8FD00884D1E /* ThreadDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024067A25DAA8FD00884D1E /* ThreadDetailViewController.swift */; };
+		B041832525EBB0390065E94F /* ThreadDetailTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */; };
+		B041832625EBB0390065E94F /* ThreadDetailTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B041832425EBB0390065E94F /* ThreadDetailTableViewCell.xib */; };
 		B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */; };
 		B044EC5A25E3418B00826E15 /* ThreadTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B044EC5825E3418B00826E15 /* ThreadTableViewCell.xib */; };
 		B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */; };
@@ -63,6 +65,8 @@
 		B024066D25DA510A00884D1E /* MessageComposeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComposeViewController.swift; sourceTree = "<group>"; };
 		B024067225DA7E7700884D1E /* FolderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderViewController.swift; sourceTree = "<group>"; };
 		B024067A25DAA8FD00884D1E /* ThreadDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadDetailViewController.swift; sourceTree = "<group>"; };
+		B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadDetailTableViewCell.swift; sourceTree = "<group>"; };
+		B041832425EBB0390065E94F /* ThreadDetailTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ThreadDetailTableViewCell.xib; sourceTree = "<group>"; };
 		B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadTableViewCell.swift; sourceTree = "<group>"; };
 		B044EC5825E3418B00826E15 /* ThreadTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ThreadTableViewCell.xib; sourceTree = "<group>"; };
 		B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComponentExtractor.swift; sourceTree = "<group>"; };
@@ -150,6 +154,8 @@
 				B0834B8725D14D94008E1807 /* LaunchScreen.storyboard */,
 				B0834B8025D14D93008E1807 /* LoginViewController.swift */,
 				B0834B8225D14D93008E1807 /* Main.storyboard */,
+				B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */,
+				B041832425EBB0390065E94F /* ThreadDetailTableViewCell.xib */,
 				B004CA1625DF610D009CAC0E /* MenuTableViewController.swift */,
 				B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */,
 				B024066D25DA510A00884D1E /* MessageComposeViewController.swift */,
@@ -321,6 +327,7 @@
 				B00658AC25D15D8400EA3BCA /* GoogleService-Info.plist in Resources */,
 				B0834B8625D14D94008E1807 /* Assets.xcassets in Resources */,
 				B0834B8425D14D93008E1807 /* Main.storyboard in Resources */,
+				B041832625EBB0390065E94F /* ThreadDetailTableViewCell.xib in Resources */,
 				B044EC5A25E3418B00826E15 /* ThreadTableViewCell.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -494,6 +501,7 @@
 				B0834B7F25D14D93008E1807 /* SceneDelegate.swift in Sources */,
 				B024067B25DAA8FD00884D1E /* ThreadDetailViewController.swift in Sources */,
 				B024067325DA7E7700884D1E /* FolderViewController.swift in Sources */,
+				B041832525EBB0390065E94F /* ThreadDetailTableViewCell.swift in Sources */,
 				B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */,
 				B024066425DA372A00884D1E /* Model.swift in Sources */,
 				B024066E25DA510A00884D1E /* MessageComposeViewController.swift in Sources */,

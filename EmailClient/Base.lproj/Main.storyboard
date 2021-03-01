@@ -64,38 +64,33 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <wkWebView contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="OP9-mh-2dA">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="ZHq-hi-d8Q">
                                 <rect key="frame" x="0.0" y="44" width="414" height="818"/>
-                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <wkWebViewConfiguration key="configuration">
-                                    <dataDetectorTypes key="dataDetectorTypes" none="YES"/>
-                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
-                                    <wkPreferences key="preferences"/>
-                                </wkWebViewConfiguration>
-                            </wkWebView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="sybhect" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ywn-B6-bAm">
-                                <rect key="frame" x="20" y="44" width="76.5" height="27"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="27" id="XLx-uC-ibq"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="vAT-3J-dzN">
+                                        <rect key="frame" x="0.0" y="28" width="414" height="43.5"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="vAT-3J-dzN" id="rze-OO-CWy">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                            </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="ibF-g0-Vxf"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="OP9-mh-2dA" firstAttribute="bottom" secondItem="ibF-g0-Vxf" secondAttribute="bottom" id="F3z-hG-hW3"/>
-                            <constraint firstItem="OP9-mh-2dA" firstAttribute="top" secondItem="ibF-g0-Vxf" secondAttribute="top" id="g7J-KQ-Twj"/>
-                            <constraint firstItem="OP9-mh-2dA" firstAttribute="leading" secondItem="ibF-g0-Vxf" secondAttribute="leading" id="xsP-b7-3yD"/>
-                            <constraint firstItem="OP9-mh-2dA" firstAttribute="trailing" secondItem="ibF-g0-Vxf" secondAttribute="trailing" id="yp2-eg-hpg"/>
+                            <constraint firstItem="ZHq-hi-d8Q" firstAttribute="top" secondItem="ibF-g0-Vxf" secondAttribute="top" id="9dl-W3-P3c"/>
+                            <constraint firstItem="ibF-g0-Vxf" firstAttribute="trailing" secondItem="ZHq-hi-d8Q" secondAttribute="trailing" id="UcL-s1-TNE"/>
+                            <constraint firstItem="ZHq-hi-d8Q" firstAttribute="leading" secondItem="ibF-g0-Vxf" secondAttribute="leading" id="oJ4-CS-RaW"/>
+                            <constraint firstItem="ibF-g0-Vxf" firstAttribute="bottom" secondItem="ZHq-hi-d8Q" secondAttribute="bottom" id="xwG-JC-Wpk"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="Ayf-0y-rMh"/>
                     <connections>
-                        <outlet property="subjectLabel" destination="ywn-B6-bAm" id="CZ6-c7-zkL"/>
-                        <outlet property="webView" destination="OP9-mh-2dA" id="ueg-Lk-cuQ"/>
+                        <outlet property="tableView" destination="ZHq-hi-d8Q" id="CaG-qU-wcM"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Lhh-EY-wlq" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -115,11 +110,11 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <gestureRecognizers/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="Xe9-1H-51h" customClass="ThreadTableViewCell" customModule="EmailClient" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="28" width="404" height="43.5"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" accessoryType="checkmark" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ThreadTableViewCell" rowHeight="105" id="Xe9-1H-51h" customClass="ThreadTableViewCell" customModule="EmailClient" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="404" height="105"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Xe9-1H-51h" id="KpL-Wq-u9D">
-                                            <rect key="frame" x="0.0" y="0.0" width="404" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="360" height="105"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>

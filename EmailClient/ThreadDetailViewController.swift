@@ -13,44 +13,81 @@ import WebKit
 class ThreadDetailViewController: UIViewController {
     // MARK: Properties
     var threadId: String!
-    // var messageStackView: UIStackView {
-    //     let view = UIStackView()
-    //     let scrollView = view.
-    // }
+    var threadDetail: ThreadDetail!
+    var scrollHeight = [IndexPath: CGFloat]()
 
     // MARK: Outlets
-    @IBOutlet var subjectLabel: UILabel!
-    @IBOutlet var webView: WKWebView!
-
+    @IBOutlet weak var tableView: UITableView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        webView.navigationDelegate = self
+        
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(ThreadDetailTableViewCell.nibName, forCellReuseIdentifier: ThreadDetailTableViewCell.identifier)
+        tableView.estimatedRowHeight = 44
+        tableView.rowHeight = UITableView.automaticDimension
 
         Model.shared.fetchThreadDetail(withId: threadId, completionHandler: {
             threadDetail in
+            self.threadDetail = threadDetail
             DispatchQueue.main.async {
-                self.render(threadDetail)
+                self.tableView.reloadData()
             }
         })
     }
+}
 
-    override func prepare(for _: UIStoryboardSegue, sender _: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+extension ThreadDetailViewController: UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        threadDetail?.messages.count ?? 0
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // Just webview displaying content, (header, footer) are seperate
+        1
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let bundle = Bundle(for: ThreadDetailTableViewCell.self)
+        let nibName = String(describing: ThreadDetailTableViewCell.self)
+        let nib = UINib(nibName: nibName, bundle: bundle)
+        let cell = UINib(nibName: "ThreadDetailTableViewCell", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! ThreadDetailTableViewCell
+        cell.indexPath = indexPath
+        // let cell = tableView.dequeueReusableCell(withIdentifier: ThreadDetailTableViewCell.identifier, for: indexPath) as! ThreadDetailTableViewCell
+        cell.delegate = self
+
+        let section = indexPath.section
+        render(threadDetail.messages[section], at: cell)
+        // cell.html = threadDetail.messages[section]
+
+        return cell
+    }
+}
+
+extension ThreadDetailViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let label = UILabel()
+        label.text = "From \(threadDetail.messages[section].from!)"
+        return label
+    }
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let label = UILabel()
+        label.text = "Reply"
+        return label
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if let height = scrollHeight[indexPath] {
+            return height
+        }
+        return UITableView.automaticDimension
     }
 }
 
 // MARK: Render
 private extension ThreadDetailViewController {
-    func render(_ threadDetail: ThreadDetail) {
-        threadDetail.messages.forEach {
-            message in
-            self.render(message)
-            // TODO: Horizontal line after each message
-        }
-    }
-
-    func render(_ message: UserMessage) {
+    func render(_ message: UserMessage, at cell: ThreadDetailTableViewCell) {
         guard case let .success(component) = extract(message.payload!) else {
             // TODO: Render error popup
             print("failure")
@@ -84,20 +121,18 @@ private extension ThreadDetailViewController {
             htmlContent = content
         }
 
-        webView.loadHTMLString(htmlContent.data, baseURL: nil)
+        cell.webView.loadHTMLString("<html><head><meta charset='utf8'><meta name = 'viewport' content = 'width=device-width'></head>"+htmlContent.data+"</html>", baseURL: nil)
     }
 }
 
-extension ThreadDetailViewController: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        // Set viewport meta tag after loading DOM
-        let javascript = """
-            var meta = document.createElement('meta');
-            meta.setAttribute('name', 'viewport');
-            meta.setAttribute('content', 'width=device-width, intial-scale=auto');
-            document.getElementsByTagName('head')[0].appendChild(meta);
-            """
-
-        webView.evaluateJavaScript(javascript, completionHandler: nil)
+extension ThreadDetailViewController: ThreadDetailTableViewCellDelegate {
+    func didCalculateHeightFor(_ cell: ThreadDetailTableViewCell, height: CGFloat) {
+        // let indexPath = tableView.indexPath(for: cell)!
+        let indexPath = cell.indexPath
+        scrollHeight[indexPath!] = height + 50
+        DispatchQueue.main.async {
+            self.tableView.beginUpdates()
+            self.tableView.endUpdates()
+        }
     }
 }
