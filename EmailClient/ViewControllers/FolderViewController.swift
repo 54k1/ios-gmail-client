@@ -15,7 +15,7 @@ enum FolderKind: String {
 class ThreadListResponse: Codable {
     struct PartThread: Codable {
         let id: String
-        let snippet: String
+        var snippet: String
         let historyId: String
     }
 
@@ -28,6 +28,13 @@ class ThreadDetail: Codable {
     var id: String
     var historyId: String
     var messages: [UserMessage]
+
+    // For syncing
+    func appendMessage(_ message: UserMessage) {
+        messages.append(message)
+        // As a result historyId is set to historyId of the message
+        historyId = message.historyId
+    }
 }
 
 class FolderViewController: UIViewController {
@@ -39,28 +46,48 @@ class FolderViewController: UIViewController {
     // MARK: Properties
 
     var kind: FolderKind = .inbox
-    // var messageBatch = [MessageList]()
-    // var metaMessages = [MessageList.PartMessage]()
-    var threads = [ThreadListResponse.PartThread]()
+    var threads: [ThreadListResponse.PartThread] {
+        Model.shared.threads
+    }
+
     var nextPageToken: String?
     var isFetchingNextBatch = false
-
     let batchSize = 10
-    var paginating = false
+
+    var refreshControl = UIRefreshControl()
+
+    // var paginating = false
+    var countImpl = 0
+    var count: Int {
+        countImpl += 1
+        return countImpl + 1
+    }
+
+    @objc func refresh() {
+        print("refreshing", count)
+        refreshControl.endRefreshing()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        refreshButton.addTarget(self, action: #selector(partialSync), for: .touchUpInside)
         tableView.tableFooterView = UIView()
         tableView.register(ThreadTableViewCell.nib, forCellReuseIdentifier: ThreadTableViewCell.identifier)
-        // Do any additional setup after loading the view.
         tableView.delegate = self
         tableView.dataSource = self
+        refreshControl.attributedTitle = NSAttributedString(string: "Syncing")
+        refreshControl.addTarget(self, action: #selector(partialSync), for: .valueChanged)
+        tableView.refreshControl = refreshControl
 
         addLoadingFooter()
 
         title = kind.rawValue.capitalized
-        // loadThreads()
-        loadNextBatch()
+        isFetchingNextBatch = true
+        Model.shared.fullSync(completionHandler: {
+            _ in
+            self.isFetchingNextBatch = false
+        })
     }
 
     func setKind(_ kind: FolderKind) {
@@ -134,8 +161,7 @@ extension FolderViewController: UIScrollViewDelegate {
     func loadNextBatch() {
         isFetchingNextBatch = true
         Model.shared.fetchNextThreadBatch(withSize: batchSize, completionHandler: {
-            threadListResponse in
-            self.threads.append(contentsOf: threadListResponse.threads)
+            _ in
             self.isFetchingNextBatch = false
             DispatchQueue.main.async {
                 self.tableView.reloadData()
@@ -151,5 +177,18 @@ extension FolderViewController: UIScrollViewDelegate {
         if position > (tableView.contentSize.height - 100 - scrollView.frame.height) {
             loadNextBatch()
         }
+    }
+}
+
+extension FolderViewController {
+    @objc func partialSync() {
+        Model.shared.partialSync(folder: kind) {
+            DispatchQueue.main.async {
+                // TODO: Check
+                // self.tableView.reloadSections(IndexSet([0]), with: .automatic)
+                self.tableView.reloadData()
+            }
+        }
+        refreshControl.endRefreshing()
     }
 }

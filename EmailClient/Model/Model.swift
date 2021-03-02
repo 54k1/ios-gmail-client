@@ -378,6 +378,10 @@ extension Model {
             } else {
                 self.nextPageToken = .exhausted
             }
+            if case .notFetched = self.latestHistoryId {
+                self.latestHistoryId = .fetched(threadListResponse.threads.first!.historyId)
+            }
+            self.threads.append(contentsOf: threadListResponse.threads)
             completionHandler(threadListResponse)
         }
     }
@@ -399,11 +403,13 @@ extension Model {
             if let historyId = threadListResponse.threads.first?.historyId {
                 self.latestHistoryId = .fetched(historyId)
             }
+            print("historyId=", self.latestHistoryId)
+            self.threads.append(contentsOf: threadListResponse.threads)
             completionHandler(threadListResponse)
         })
     }
 
-    func partialSync(folder: FolderKind) {
+    func partialSync(folder: FolderKind, completionHandler: @escaping () -> Void) {
         guard case let .fetched(historyId) = latestHistoryId else {
             NSLog("partialSync called when historyId not set")
             return
@@ -420,23 +426,41 @@ extension Model {
             guard let history = historyList.history else {
                 return
             }
+            self.latestHistoryId = .fetched(historyList.historyId)
             for historyObject in history {
+                guard historyObject.messagesAdded != nil else {
+                    continue
+                }
+                
+                let queue = DispatchQueue.global()
+                let group = DispatchGroup()
                 for addedMessage in historyObject.messagesAdded! {
                     self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
-                        message in
-                        // self.threadDetailWithId[message.threadId].messages.append(message)
-                        self.threadDetailWithId[message.threadId]?.messages.append(message)
+                        newMessage in
+                        self.messageWithId[newMessage.id] = newMessage
+                        if let threadDetail = self.threadDetailWithId[newMessage.threadId] {
+                            threadDetail.appendMessage(newMessage)
+                            if let index = self.threads.firstIndex(where: {$0.id == threadDetail.id}) {
+                                self.threads[index] = ThreadListResponse.PartThread(id: threadDetail.id, snippet: newMessage.snippet, historyId: newMessage.id)
+                            }
+                        } else {
+                            let partThread = ThreadListResponse.PartThread(id: newMessage.threadId, snippet: newMessage.snippet, historyId: newMessage.historyId)
+                            self.threads.insert(partThread, at: 0)
+                            queue.async(group: group) {
+                                self.fetchThreadDetail(withId: newMessage.threadId, completionHandler: {_ in ()})
+                            }
+                        }
                     })
                 }
-                for deletedMessage in historyObject.messagesDeleted! {
-                    let threadId = deletedMessage.message.threadId
-                    let messageId = deletedMessage.message.id
-                    var messages = self.threadDetailWithId[threadId]!.messages
-                    messages.remove(at: messages.firstIndex(where: { $0.id == messageId })!)
-                    self.threadDetailWithId[threadId]?.messages = messages
-                    // Update historyId of that thread
-                }
+                group.wait()
+                self.threads.sort(by: {
+                    let threadDetail0 = self.threadDetailWithId[$0.id]!
+                    let threadDetail1 = self.threadDetailWithId[$1.id]!
+                    return Int(threadDetail0.historyId)! > Int(threadDetail1.historyId)!
+                })
+                completionHandler()
             }
+            
         }
     }
 }

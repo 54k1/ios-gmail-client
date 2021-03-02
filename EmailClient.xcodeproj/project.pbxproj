@@ -187,6 +187,7 @@
 			);
 			path = EmailClient;
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		B0834B9225D14D94008E1807 /* EmailClientTests */ = {
 			isa = PBXGroup;
