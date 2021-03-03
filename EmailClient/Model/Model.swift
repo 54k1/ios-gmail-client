@@ -31,7 +31,7 @@ class History: Codable {
     let labelsDeleted: [LabelsChanged]?
 }
 
-class HistoryList: Codable {
+class HistoryListResponse: Codable {
     let historyId: String
     let nextPageToken: String?
     let history: [History]?
@@ -86,26 +86,6 @@ class Model {
         return request
     }
 
-    func fetchMessages(withThreadId threadId: String, _ completionHandler: @escaping ([UserMessage]) -> Void) {
-        if let detail = threadDetailWithId[threadId] {
-            completionHandler(detail.messages)
-        } else {
-            let url = URL(string: "https://gmail.googleapis.com/gmail/v1/users/me/threads/\(threadId)")!
-            Networker.request(makeRequest(url), completionHandler: {
-                result in
-                guard case let .success(data) = result else {
-                    return
-                }
-                let decoder = JSONDecoder()
-                guard let json = try? decoder.decode(ThreadDetail.self, from: data!) else {
-                    return
-                }
-                self.threadDetailWithId[threadId] = json
-                completionHandler(json.messages)
-            })
-        }
-    }
-
     func fetchThread(withId threadId: String, _ completionHandler: @escaping (ThreadDetail) -> Void) {
         if let detail = threadDetailWithId[threadId] {
             completionHandler(detail)
@@ -152,121 +132,10 @@ class Model {
         }
     }
 
-    func fetchMessageList(withLabel label: String? = nil, withToken nextPageToken: String? = nil, maxResults: Int = 20, _ completionHandler: @escaping (MessageList) -> Void) {
-        var queryItems = [URLQueryItem(name: "maxResults", value: maxResults.description)]
-        if let label = label {
-            queryItems.append(URLQueryItem(name: "labelIds", value: label))
-        }
-        if let nextPageToken = nextPageToken {
-            queryItems.append(URLQueryItem(name: "nextPageToken", value: nextPageToken))
-        }
-        var component = URLComponents(string: "https://gmail.googleapis.com/gmail/v1/users/me/messages")!
-        component.queryItems = queryItems
-        let url = component.url!
-        print("url=", url)
-        let request = makeRequest(url)
-        Networker.request(request) {
-            result in
-            guard case let .success(data) = result else {
-                return
-            }
-            let decoder = JSONDecoder()
-            guard let json = try? decoder.decode(MessageList.self, from: data!) else {
-                return
-            }
-            completionHandler(json)
-        }
-    }
-
-    func fetchThreadList(withLabel label: String? = nil, withToken nextPageToken: String? = nil, maxResults: Int = 20, _ completionHandler: @escaping (ThreadListResponse) -> Void) {
-        var queryItems = [URLQueryItem(name: "maxResults", value: maxResults.description)]
-        if let label = label {
-            queryItems.append(URLQueryItem(name: "labelIds", value: label))
-        }
-        if let nextPageToken = nextPageToken {
-            queryItems.append(URLQueryItem(name: "pageToken", value: nextPageToken))
-        }
-        var component = URLComponents(string: "https://gmail.googleapis.com/gmail/v1/users/me/threads")!
-        component.queryItems = queryItems
-        let url = component.url!
-        print("url=", url)
-        let request = makeRequest(url)
-        Networker.request(request) {
-            result in
-            guard case let .success(data) = result else {
-                return
-            }
-            let decoder = JSONDecoder()
-            guard let json = try? decoder.decode(ThreadListResponse.self, from: data!) else {
-                return
-            }
-            completionHandler(json)
-        }
-    }
-
     enum PartialSyncType: String {
         case messageAdded = "MESSAGE_ADDED"
         case messageDeleted = "MESSAGE_DELETED"
         // TODO: Labels
-    }
-
-    func partialSync(of folder: FolderKind? = nil, type: PartialSyncType = .messageAdded, completionHandler: @escaping ([MessageList.PartMessage]) -> Void) {
-        if let historyId = latHistoryId {
-            var url = URL(string: "https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=\(historyId)?historyTypes=\(type)")!
-            if let folder = folder {
-                url = URL(string: "https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=\(historyId)&labelId=\(folder.rawValue)")!
-            }
-            let request = makeRequest(url)
-            Networker.request(request) {
-                result in
-                guard case let .success(data) = result else {
-                    return
-                }
-                let decoder = JSONDecoder()
-                var json: HistoryList?
-                do {
-                    json = try decoder.decode(HistoryList.self, from: data!)
-                } catch let e {
-                    print(e)
-                    return
-                }
-
-                var updatedMessages = [MessageList.PartMessage]()
-                if let history = json?.history {
-                    for history in history {
-                        if let messagesAdded = history.messagesAdded {
-                            for message in messagesAdded {
-                                let message = message.message
-                                let part = MessageList.PartMessage(id: message.id, threadId: message.threadId)
-                                updatedMessages.append(part)
-                            }
-                        }
-                    }
-                } else {
-                    // Up to date
-                }
-                // update historyId
-                self.latHistoryId = json?.historyId
-
-                completionHandler(updatedMessages)
-            }
-        } else {
-            fatalError("Perform full sync before partial sync")
-        }
-    }
-
-    var latHistoryId: String!
-
-    func fullSync(withLabel label: String? = nil, completionHandler: @escaping (ThreadListResponse) -> Void) {
-        threadDetailWithId.removeAll()
-        fetchThreadList(withLabel: label) {
-            threadList in
-            for thread in threadList.threads {
-                self.fetchThread(withId: thread.id) { _ in () }
-            }
-            self.latHistoryId = threadList.threads[0].historyId
-            completionHandler(threadList)
-        }
     }
 }
 
@@ -403,8 +272,7 @@ extension Model {
             if let historyId = threadListResponse.threads.first?.historyId {
                 self.latestHistoryId = .fetched(historyId)
             }
-            print("historyId=", self.latestHistoryId)
-            self.threads.append(contentsOf: threadListResponse.threads)
+            // self.threads.append(contentsOf: threadListResponse.threads)
             completionHandler(threadListResponse)
         })
     }
@@ -419,7 +287,7 @@ extension Model {
             URLQueryItem(name: "labelId", value: folder.rawValue),
         ])
         Networker.fetch(fromRequest: request) {
-            (result: NetworkerResult<HistoryList>) in
+            (result: NetworkerResult<HistoryListResponse>) in
             guard case let .success(historyList) = result else {
                 return
             }
@@ -428,29 +296,36 @@ extension Model {
             }
             self.latestHistoryId = .fetched(historyList.historyId)
             for historyObject in history {
-                guard historyObject.messagesAdded != nil else {
-                    continue
-                }
-                
                 let queue = DispatchQueue.global()
                 let group = DispatchGroup()
-                for addedMessage in historyObject.messagesAdded! {
-                    self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
-                        newMessage in
-                        self.messageWithId[newMessage.id] = newMessage
-                        if let threadDetail = self.threadDetailWithId[newMessage.threadId] {
-                            threadDetail.appendMessage(newMessage)
-                            if let index = self.threads.firstIndex(where: {$0.id == threadDetail.id}) {
-                                self.threads[index] = ThreadListResponse.PartThread(id: threadDetail.id, snippet: newMessage.snippet, historyId: newMessage.id)
+                if let messagesAdded = historyObject.messagesAdded {
+                    for addedMessage in messagesAdded {
+                        self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
+                            newMessage in
+                            self.messageWithId[newMessage.id] = newMessage
+                            if let threadDetail = self.threadDetailWithId[newMessage.threadId] {
+                                threadDetail.appendMessage(newMessage)
+                                if let index = self.threads.firstIndex(where: {$0.id == threadDetail.id}) {
+                                    self.threads[index] = ThreadListResponse.PartThread(id: threadDetail.id, snippet: newMessage.snippet, historyId: newMessage.id)
+                                }
+                            } else {
+                                let partThread = ThreadListResponse.PartThread(id: newMessage.threadId, snippet: newMessage.snippet, historyId: newMessage.historyId)
+                                self.threads.insert(partThread, at: 0)
+                                queue.async(group: group) {
+                                    self.fetchThreadDetail(withId: newMessage.threadId, completionHandler: {_ in ()})
+                                }
                             }
-                        } else {
-                            let partThread = ThreadListResponse.PartThread(id: newMessage.threadId, snippet: newMessage.snippet, historyId: newMessage.historyId)
-                            self.threads.insert(partThread, at: 0)
-                            queue.async(group: group) {
-                                self.fetchThreadDetail(withId: newMessage.threadId, completionHandler: {_ in ()})
-                            }
-                        }
-                    })
+                        })
+                    }
+                }
+                if let messagesDeleted = historyObject.messagesDeleted {
+                    for deletedMessage in messagesDeleted {
+                        let threadId = deletedMessage.message.threadId
+                        let messageId = deletedMessage.message.id
+                        // self.threadDetailWithId[threadId] = nil
+                        self.messageWithId[messageId] = nil
+                        self.threadDetailWithId[threadId]?.deleteMessage(withId: deletedMessage.message.id)
+                    }
                 }
                 group.wait()
                 self.threads.sort(by: {

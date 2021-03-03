@@ -35,6 +35,10 @@ class ThreadDetail: Codable {
         // As a result historyId is set to historyId of the message
         historyId = message.historyId
     }
+    
+    func deleteMessage(withId id: String) {
+        messages.removeAll(where: {$0.id == id})
+    }
 }
 
 class FolderViewController: UIViewController {
@@ -51,22 +55,10 @@ class FolderViewController: UIViewController {
     }
 
     var nextPageToken: String?
-    var isFetchingNextBatch = false
+    var isFetchingNextBatch = true
     let batchSize = 10
 
     var refreshControl = UIRefreshControl()
-
-    // var paginating = false
-    var countImpl = 0
-    var count: Int {
-        countImpl += 1
-        return countImpl + 1
-    }
-
-    @objc func refresh() {
-        print("refreshing", count)
-        refreshControl.endRefreshing()
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -84,9 +76,12 @@ class FolderViewController: UIViewController {
 
         title = kind.rawValue.capitalized
         isFetchingNextBatch = true
-        Model.shared.fullSync(completionHandler: {
+        Model.shared.fullSync(batchSize: batchSize, completionHandler: {
             _ in
             self.isFetchingNextBatch = false
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
         })
     }
 
@@ -185,8 +180,9 @@ extension FolderViewController {
         Model.shared.partialSync(folder: kind) {
             DispatchQueue.main.async {
                 // TODO: Check
+                self.tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
                 // self.tableView.reloadSections(IndexSet([0]), with: .automatic)
-                self.tableView.reloadData()
+                // self.tableView.reloadData()
             }
         }
         refreshControl.endRefreshing()

@@ -53,6 +53,8 @@ class MenuTableViewController: UITableViewController {
         vcOf[.inbox] = inboxVC
         vcOf[.sent] = sentVC
         vcOf[.trash] = trashVC
+        
+        navigationController?.pushViewController(inboxVC, animated: true)
     }
 
     @objc func presentComposeVC() {

@@ -140,10 +140,3 @@ extension ThreadDetailViewController: ThreadDetailTableViewCellDelegate {
         }
     }
 }
-
-// Sync
-extension ThreadDetailViewController {
-    @objc func partialSync() {
-        // let latestHistoryId = threads[0].
-    }
-}
