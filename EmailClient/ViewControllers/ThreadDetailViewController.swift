@@ -19,6 +19,7 @@ class ThreadDetailViewController: UIViewController {
 
     // MARK: Outlets
 
+    @IBOutlet var subjectLabel: UILabel!
     @IBOutlet var tableView: UITableView!
 
     override func viewDidLoad() {
@@ -27,6 +28,8 @@ class ThreadDetailViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(ThreadDetailTableViewCell.nibName, forCellReuseIdentifier: ThreadDetailTableViewCell.identifier)
+        tableView.register(MessageHeaderTableViewCell.nib, forCellReuseIdentifier: MessageHeaderTableViewCell.identifier)
+        tableView.register(MessageFooterTableViewCell.nib, forCellReuseIdentifier: MessageFooterTableViewCell.identifier)
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
 
@@ -34,6 +37,7 @@ class ThreadDetailViewController: UIViewController {
             threadDetail in
             self.threadDetail = threadDetail
             DispatchQueue.main.async {
+                self.subjectLabel.text = threadDetail.messages[0].headerValueFor(key: "Subject")
                 self.tableView.reloadData()
             }
         })
@@ -46,45 +50,45 @@ extension ThreadDetailViewController: UITableViewDataSource {
     }
 
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        // Just webview displaying content, (header, footer) are seperate
-        1
+        3
     }
 
     func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let bundle = Bundle(for: ThreadDetailTableViewCell.self)
-        let nibName = String(describing: ThreadDetailTableViewCell.self)
-        let nib = UINib(nibName: nibName, bundle: bundle)
-        let cell = UINib(nibName: "ThreadDetailTableViewCell", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! ThreadDetailTableViewCell
-        cell.indexPath = indexPath
-        // let cell = tableView.dequeueReusableCell(withIdentifier: ThreadDetailTableViewCell.identifier, for: indexPath) as! ThreadDetailTableViewCell
-        cell.delegate = self
+        let (section, row) = (indexPath.section, indexPath.row)
+        if row == 0 {
+            // let cell = UINib(nibName: MessageHeaderTableViewCell.nibName, bundle: nil).instantia
+            let cell = tableView.dequeueReusableCell(withIdentifier: MessageHeaderTableViewCell.identifier, for: indexPath) as! MessageHeaderTableViewCell
+            cell.usernameLabel.text = threadDetail.messages[section].from
+            return cell
+        } else if row == 1 {
+            let cell = UINib(nibName: "ThreadDetailTableViewCell", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! ThreadDetailTableViewCell
+            cell.indexPath = indexPath
+            // let cell = tableView.dequeueReusableCell(withIdentifier: ThreadDetailTableViewCell.identifier, for: indexPath) as! ThreadDetailTableViewCell
+            cell.delegate = self
 
-        let section = indexPath.section
-        render(threadDetail.messages[section], at: cell)
-        // cell.html = threadDetail.messages[section]
+            render(threadDetail.messages[section], at: cell)
+            // cell.html = threadDetail.messages[section]
 
-        return cell
+            return cell
+        } else if row == 2 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: MessageFooterTableViewCell.identifier, for: indexPath) as! MessageFooterTableViewCell
+            return cell
+        } else {
+            fatalError("Each section of ThreadDetailView has only 3 rows(0, 1, 2); Row: \(row) requested")
+        }
     }
 }
 
 extension ThreadDetailViewController: UITableViewDelegate {
-    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let label = UILabel()
-        label.text = "From \(threadDetail.messages[section].from!)"
-        return label
-    }
-
-    func tableView(_: UITableView, viewForFooterInSection _: Int) -> UIView? {
-        let label = UILabel()
-        label.text = "Reply"
-        return label
-    }
-
     func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if let height = scrollHeight[indexPath] {
             return height
         }
         return UITableView.automaticDimension
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: false)
     }
 }
 

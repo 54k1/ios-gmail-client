@@ -49,7 +49,11 @@ class UserMessage: Codable {
     }
 
     var from: String? {
-        headerValueFor(key: "From")
+        let from = headerValueFor(key: "From")
+        if let index = from?.firstIndex(of: "<") {
+            return String(from!.prefix(upTo: index))
+        }
+        return from
     }
 
     var to: String? {

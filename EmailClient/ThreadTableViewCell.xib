@@ -17,8 +17,8 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="From" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L3E-cG-7AN">
-                        <rect key="frame" x="82" y="20.5" width="53" height="29"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                        <rect key="frame" x="82" y="20.5" width="41.5" height="21.5"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
@@ -30,15 +30,23 @@
                         </constraints>
                     </imageView>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Snippet" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Bh4-y9-b5X">
-                        <rect key="frame" x="82" y="57.5" width="59" height="20.5"/>
+                        <rect key="frame" x="82" y="50" width="59" height="20.5"/>
                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fkS-YE-Rc0">
+                        <rect key="frame" x="262" y="20.5" width="38" height="18"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
                 </subviews>
                 <constraints>
+                    <constraint firstAttribute="trailing" secondItem="fkS-YE-Rc0" secondAttribute="trailing" constant="20" symbolic="YES" id="3T6-bZ-wMq"/>
                     <constraint firstItem="wa5-4e-Wwq" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="10" id="7XT-v3-gIx"/>
                     <constraint firstItem="L3E-cG-7AN" firstAttribute="top" secondItem="wa5-4e-Wwq" secondAttribute="top" id="BJS-BC-uZv"/>
+                    <constraint firstItem="fkS-YE-Rc0" firstAttribute="top" secondItem="L3E-cG-7AN" secondAttribute="top" id="GV3-ET-QRg"/>
                     <constraint firstItem="Bh4-y9-b5X" firstAttribute="leading" secondItem="L3E-cG-7AN" secondAttribute="leading" id="YA6-rb-u7F"/>
                     <constraint firstItem="L3E-cG-7AN" firstAttribute="leading" secondItem="wa5-4e-Wwq" secondAttribute="trailing" constant="8" symbolic="YES" id="k9H-lX-a1z"/>
                     <constraint firstItem="wa5-4e-Wwq" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="rHA-ld-etV"/>
@@ -47,6 +55,7 @@
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
+                <outlet property="dateLabel" destination="fkS-YE-Rc0" id="Qcb-Yu-srH"/>
                 <outlet property="fromLabel" destination="L3E-cG-7AN" id="xKO-bh-9bi"/>
                 <outlet property="snippetLabel" destination="Bh4-y9-b5X" id="C5Z-LG-KOk"/>
             </connections>

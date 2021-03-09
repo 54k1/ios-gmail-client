@@ -12,6 +12,7 @@ class ThreadTableViewCell: UITableViewCell {
 
     @IBOutlet var snippetLabel: UILabel!
     @IBOutlet var fromLabel: UILabel!
+    @IBOutlet var dateLabel: UILabel!
 
     // MARK: Properties
 
@@ -21,6 +22,23 @@ class ThreadTableViewCell: UITableViewCell {
     var snippet: String! {
         didSet {
             snippetLabel?.text = snippet
+        }
+    }
+
+    var date: String! {
+        didSet {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+            formatter.dateStyle = .short
+            let dat = formatter.date(from: date)
+            let requestedComponents: Set<Calendar.Component> = [
+                .day,
+                .hour,
+                .minute,
+            ]
+            let calendar = Calendar.current
+            // let dateComponents = calendar.dateComponents(requestedComponents, from: dat!)
+            // dateLabel?.text = date
         }
     }
 

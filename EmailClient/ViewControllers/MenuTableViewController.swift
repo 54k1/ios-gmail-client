@@ -8,22 +8,35 @@
 import GoogleSignIn
 import UIKit
 
+enum MenuItem {
+    case label(id: String, name: String)
+    case other(name: String)
+
+    var displayName: String {
+        switch self {
+        case let .label(_, name):
+            return name
+        case let .other(name):
+            return name
+        }
+    }
+}
+
 protocol MenuItemSelectionDelegate {
-    func didSelectMenuItem(_ item: MenuTableViewController.MenuItem)
+    func didSelectMenuItem(_ item: MenuItem)
 }
 
 class MenuTableViewController: UITableViewController {
-    enum MenuItem: String {
-        case inbox, sent, trash
-        case signOut
-    }
-
     let menuSections: [[MenuItem]] = [
-        [.inbox, .sent, .trash],
-        [.signOut],
+        [.label(id: "INBOX", name: "inbox"),
+         .label(id: "SENT", name: "sent"),
+         .label(id: "DRAFT", name: "draft"),
+         .label(id: "TRASH", name: "trash")],
     ]
 
-    var vcOf = [MenuItem: UIViewController]()
+    var vcOf = [String: UIViewController]()
+    var vc: FolderViewController!
+    var uuidOf = [String: UUID]()
 
     @IBOutlet var composeButton: UIButton!
 
@@ -31,30 +44,19 @@ class MenuTableViewController: UITableViewController {
         super.viewDidLoad()
 
         title = "Menu"
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
         composeButton.addTarget(self, action: #selector(presentComposeVC), for: .touchUpInside)
 
-        guard let inboxVC = storyboard?.instantiateViewController(identifier: "folderVC") else {
-            return
+        vc = storyboard?.instantiateViewController(identifier: "folderVC") as? FolderViewController
+        guard vc != nil else {
+            fatalError("Could not isntantiate 'folderVC'")
         }
-        guard let sentVC = storyboard?.instantiateViewController(identifier: "folderVC") as? FolderViewController else {
-            return
-        }
-        guard let trashVC = storyboard?.instantiateViewController(identifier: "folderVC") as? FolderViewController else {
-            return
-        }
-        sentVC.setKind(.sent)
-        trashVC.setKind(.trash)
-        vcOf[.inbox] = inboxVC
-        vcOf[.sent] = sentVC
-        vcOf[.trash] = trashVC
-        
-        navigationController?.pushViewController(inboxVC, animated: true)
+
+        Model.shared.fetchLabels()
+        // navigationController?.pushViewController(inboxVC, animated: true)
+        // Model.shared.registerContext(withLabelIds: [])
+        vc.label = (id: "INBOX", name: "inbox")
+        tableView(tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+        // navigationController?.pushViewController(vc, animated: true)
     }
 
     @objc func presentComposeVC() {
@@ -80,65 +82,32 @@ class MenuTableViewController: UITableViewController {
 
         // Configure the cell...
         let cell = UITableViewCell()
-        cell.textLabel?.text = menuSections[indexPath.section][indexPath.row].rawValue.capitalized
+        cell.textLabel?.text = menuSections[indexPath.section][indexPath.row].displayName
 
         return cell
     }
 
+    var labelShouldFullSync = [UUID: Bool]()
     override func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         let item = menuSections[indexPath.section][indexPath.row]
         switch item {
-        case .inbox, .sent, .trash:
-            let vc = vcOf[item]!
+        case let .label(id, name):
+            print(item)
+            vc.label = (id, name)
+            vc.title = name.capitalized
+            if let uuid = uuidOf[id] {
+                // If context already registered, simply change it
+                Model.shared.changeContext(toUUID: uuid)
+            } else {
+                // Else register new Context and store obtained UUID
+                let uuid = Model.shared.registerContext(withLabelIds: [id])
+                uuidOf[id] = uuid
+                Model.shared.changeContext(toUUID: uuid)
+                vc.performInitialFullSync()
+            }
             navigationController?.pushViewController(vc, animated: true)
-        case .signOut:
-            GIDSignIn.sharedInstance()?.signOut()
-            dismiss(animated: true, completion: nil)
+        case .other:
+            print("do something based on what it is (signOut, etc.)")
         }
     }
-
-    /*
-     // Override to support conditional editing of the table view.
-     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-         // Return false if you do not want the specified item to be editable.
-         return true
-     }
-     */
-
-    /*
-     // Override to support editing the table view.
-     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-         if editingStyle == .delete {
-             // Delete the row from the data source
-             tableView.deleteRows(at: [indexPath], with: .fade)
-         } else if editingStyle == .insert {
-             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-         }
-     }
-     */
-
-    /*
-     // Override to support rearranging the table view.
-     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-     }
-     */
-
-    /*
-     // Override to support conditional rearranging of the table view.
-     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-         // Return false if you do not want the item to be re-orderable.
-         return true
-     }
-     */
-
-    /*
-     // MARK: - Navigation
-
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-         // Get the new view controller using segue.destination.
-         // Pass the selected object to the new view controller.
-     }
-     */
 }

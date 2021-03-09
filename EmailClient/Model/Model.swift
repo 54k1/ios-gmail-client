@@ -48,6 +48,35 @@ struct MessageList: Codable {
     let nextPageToken: String?
 }
 
+class ThreadListResponse: Codable {
+    struct PartThread: Codable {
+        let id: String
+        var snippet: String
+        let historyId: String
+    }
+
+    var threads: [PartThread]?
+    let resultSizeEstimate: Int
+    let nextPageToken: String?
+}
+
+class ThreadDetail: Codable {
+    var id: String
+    var historyId: String
+    var messages: [UserMessage]
+
+    // For syncing
+    func appendMessage(_ message: UserMessage) {
+        messages.append(message)
+        // As a result historyId is set to historyId of the message
+        historyId = message.historyId
+    }
+
+    func deleteMessage(withId id: String) {
+        messages.removeAll(where: { $0.id == id })
+    }
+}
+
 class Model {
     static let shared = Model()
     static var token: String!
@@ -71,14 +100,64 @@ class Model {
         }
     }
 
-    var nextPageToken: PageToken = .notFetched
-    var latestHistoryId: HistoryId = .notFetched
+    class Context {
+        var labelIds = [String]()
+        var nextPageToken: PageToken = .notFetched
+        var latestHistoryId: HistoryId = .notFetched
+        var threads = [ThreadListResponse.PartThread]()
+
+        init(labelIds: [String], nextPageToken: PageToken, latestHistoryId: HistoryId, threads: [ThreadListResponse.PartThread]) {
+            self.labelIds = labelIds
+            self.nextPageToken = nextPageToken
+            self.latestHistoryId = latestHistoryId
+            self.threads = threads
+        }
+    }
+
+    var contextFor = [UUID: Context]()
+    func registerContext(withLabelIds labelIds: [String]) -> UUID {
+        let uuid = UUID()
+        contextFor[uuid] = Context(labelIds: labelIds, nextPageToken: .notFetched, latestHistoryId: .notFetched, threads: [ThreadListResponse.PartThread]())
+        return uuid
+    }
+
+    func changeContext(toUUID id: UUID) {
+        context = contextFor[id]!
+    }
+
+    var context: Context!
+
+    var nextPageToken: PageToken {
+        get {
+            context.nextPageToken
+        }
+        set {
+            context.nextPageToken = newValue
+        }
+    }
+
+    var latestHistoryId: HistoryId {
+        get {
+            context.latestHistoryId
+        }
+        set {
+            context.latestHistoryId = newValue
+        }
+    }
+
+    var threads: [ThreadListResponse.PartThread] {
+        get {
+            context.threads
+        }
+        set {
+            context.threads = newValue
+        }
+    }
 
     private init() {}
 
     var messageWithId = [String: UserMessage]()
     var threadDetailWithId = [String: ThreadDetail]()
-    var threads = [ThreadListResponse.PartThread]()
 
     func makeRequest(_ url: URL) -> URLRequest {
         var request = URLRequest(url: url)
@@ -183,6 +262,12 @@ extension Model {
 
         case history(HistoryMethod)
 
+        enum LabelMethod {
+            case list
+        }
+
+        case label(LabelMethod)
+
         func toString() -> String {
             var path = ""
             switch self {
@@ -202,6 +287,12 @@ extension Model {
                 }
             case let .history(method):
                 path += "/history"
+                switch method {
+                case .list:
+                    path += ""
+                }
+            case let .label(method):
+                path += "/labels"
                 switch method {
                 case .list:
                     path += ""
@@ -226,13 +317,14 @@ extension Model {
 }
 
 extension Model {
-    func fetchNextThreadBatch(withSize size: Int, completionHandler: @escaping (ThreadListResponse) -> Void) {
+    func fetchNextThreadBatch(withSize size: Int, withLabelId labelId: String, completionHandler: @escaping (ThreadListResponse) -> Void) {
         if case .exhausted = nextPageToken {
             // No more threads to load
             return
         }
 
         let request = makeRequest(withMethod: .thread(.list), withQueryItems: [
+            URLQueryItem(name: "labelIds", value: labelId),
             URLQueryItem(name: "maxResults", value: String(size)),
             URLQueryItem(name: "pageToken", value: nextPageToken.toString()),
         ])
@@ -248,9 +340,13 @@ extension Model {
                 self.nextPageToken = .exhausted
             }
             if case .notFetched = self.latestHistoryId {
-                self.latestHistoryId = .fetched(threadListResponse.threads.first!.historyId)
+                if let threads = threadListResponse.threads {
+                    self.latestHistoryId = .fetched(threads.first!.historyId)
+                } else {}
             }
-            self.threads.append(contentsOf: threadListResponse.threads)
+            if let threads = threadListResponse.threads {
+                self.threads.append(contentsOf: threads)
+            }
             completionHandler(threadListResponse)
         }
     }
@@ -265,27 +361,30 @@ extension Model {
     }
 
     // Call intially
-    func fullSync(batchSize size: Int, completionHandler: @escaping (ThreadListResponse) -> Void) {
+    func fullSync(batchSize size: Int, withLabelId labelId: String, completionHandler: @escaping (ThreadListResponse) -> Void) {
         nextPageToken = .notFetched
-        fetchNextThreadBatch(withSize: size, completionHandler: {
+        fetchNextThreadBatch(withSize: size, withLabelId: labelId, completionHandler: {
             threadListResponse in
-            if let historyId = threadListResponse.threads.first?.historyId {
-                self.latestHistoryId = .fetched(historyId)
+            if let threads = threadListResponse.threads {
+                if let historyId = threads.first?.historyId {
+                    self.latestHistoryId = .fetched(historyId)
+                }
             }
             // self.threads.append(contentsOf: threadListResponse.threads)
             completionHandler(threadListResponse)
         })
     }
 
-    func partialSync(folder: FolderKind, completionHandler: @escaping () -> Void) {
+    func partialSync(withLabelId labelId: String, completionHandler: @escaping () -> Void) {
         guard case let .fetched(historyId) = latestHistoryId else {
             NSLog("partialSync called when historyId not set")
             return
         }
         let request = makeRequest(withMethod: .history(.list), withQueryItems: [
             URLQueryItem(name: "startHistoryId", value: historyId),
-            URLQueryItem(name: "labelId", value: folder.rawValue),
+            URLQueryItem(name: "labelId", value: labelId),
         ])
+        print(request)
         Networker.fetch(fromRequest: request) {
             (result: NetworkerResult<HistoryListResponse>) in
             guard case let .success(historyList) = result else {
@@ -300,22 +399,23 @@ extension Model {
                 let group = DispatchGroup()
                 if let messagesAdded = historyObject.messagesAdded {
                     for addedMessage in messagesAdded {
-                        self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
+                        queue.async(group: group) { self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
                             newMessage in
                             self.messageWithId[newMessage.id] = newMessage
                             if let threadDetail = self.threadDetailWithId[newMessage.threadId] {
                                 threadDetail.appendMessage(newMessage)
-                                if let index = self.threads.firstIndex(where: {$0.id == threadDetail.id}) {
+                                if let index = self.threads.firstIndex(where: { $0.id == threadDetail.id }) {
                                     self.threads[index] = ThreadListResponse.PartThread(id: threadDetail.id, snippet: newMessage.snippet, historyId: newMessage.id)
                                 }
                             } else {
                                 let partThread = ThreadListResponse.PartThread(id: newMessage.threadId, snippet: newMessage.snippet, historyId: newMessage.historyId)
                                 self.threads.insert(partThread, at: 0)
                                 queue.async(group: group) {
-                                    self.fetchThreadDetail(withId: newMessage.threadId, completionHandler: {_ in ()})
+                                    self.fetchThreadDetail(withId: newMessage.threadId, completionHandler: { _ in () })
                                 }
                             }
                         })
+                        }
                     }
                 }
                 if let messagesDeleted = historyObject.messagesDeleted {
@@ -325,7 +425,13 @@ extension Model {
                         // self.threadDetailWithId[threadId] = nil
                         self.messageWithId[messageId] = nil
                         self.threadDetailWithId[threadId]?.deleteMessage(withId: deletedMessage.message.id)
+                        if self.threadDetailWithId[threadId]?.messages.isEmpty ?? false {
+                            self.threadDetailWithId[threadId] = nil
+                            self.threads.remove(at: self.threads.firstIndex(where: { $0.id == threadId })!)
+                        }
                     }
+                } else {
+                    print("no deleted messages")
                 }
                 group.wait()
                 self.threads.sort(by: {
@@ -333,9 +439,41 @@ extension Model {
                     let threadDetail1 = self.threadDetailWithId[$1.id]!
                     return Int(threadDetail0.historyId)! > Int(threadDetail1.historyId)!
                 })
+                print("sorted")
                 completionHandler()
             }
-            
+        }
+    }
+}
+
+extension Model {
+    struct Label: Codable {
+        enum LabelType: String, Codable {
+            case system
+            case user
+        }
+
+        let id: String
+        let name: String
+        let messageListVisibility: String?
+        let labelListVisibility: String?
+        let type: LabelType
+    }
+
+    struct LabelsListResponse: Codable {
+        let labels: [Label]
+    }
+
+    func fetchLabels() {
+        let request = makeRequest(withMethod: .label(.list), withQueryItems: nil)
+        Networker.fetch(fromRequest: request) {
+            (result: NetworkerResult<LabelsListResponse>) in
+            guard case let .success(labelsListResponse) = result else {
+                return
+            }
+            for label in labelsListResponse.labels {
+                print(label)
+            }
         }
     }
 }

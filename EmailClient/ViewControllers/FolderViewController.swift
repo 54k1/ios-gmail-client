@@ -8,39 +8,6 @@
 import GoogleSignIn
 import UIKit
 
-enum FolderKind: String {
-    case inbox = "INBOX", sent = "SENT", trash = "TRASH"
-}
-
-class ThreadListResponse: Codable {
-    struct PartThread: Codable {
-        let id: String
-        var snippet: String
-        let historyId: String
-    }
-
-    var threads: [PartThread]
-    let resultSizeEstimate: Int
-    let nextPageToken: String?
-}
-
-class ThreadDetail: Codable {
-    var id: String
-    var historyId: String
-    var messages: [UserMessage]
-
-    // For syncing
-    func appendMessage(_ message: UserMessage) {
-        messages.append(message)
-        // As a result historyId is set to historyId of the message
-        historyId = message.historyId
-    }
-    
-    func deleteMessage(withId id: String) {
-        messages.removeAll(where: {$0.id == id})
-    }
-}
-
 class FolderViewController: UIViewController {
     // MARK: Outlets
 
@@ -49,14 +16,16 @@ class FolderViewController: UIViewController {
 
     // MARK: Properties
 
-    var kind: FolderKind = .inbox
+    var label: (id: String, name: String)!
     var threads: [ThreadListResponse.PartThread] {
         Model.shared.threads
     }
 
     var nextPageToken: String?
-    var isFetchingNextBatch = true
+    var isFetchingNextBatch = false
+    var doneFetching = false
     let batchSize = 10
+    let shouldFullSync = false
 
     var refreshControl = UIRefreshControl()
 
@@ -74,19 +43,11 @@ class FolderViewController: UIViewController {
 
         addLoadingFooter()
 
-        title = kind.rawValue.capitalized
-        isFetchingNextBatch = true
-        Model.shared.fullSync(batchSize: batchSize, completionHandler: {
-            _ in
-            self.isFetchingNextBatch = false
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-            }
-        })
+        title = label.name.capitalized
     }
 
-    func setKind(_ kind: FolderKind) {
-        self.kind = kind
+    override func viewDidAppear(_: Bool) {
+        tableView.reloadData()
     }
 
     @IBSegueAction func showThreadDetail(_ coder: NSCoder, sender: Any?, segueIdentifier _: String?) -> ThreadDetailViewController? {
@@ -120,6 +81,8 @@ extension FolderViewController: UITableViewDataSource {
             threadDetail in
             DispatchQueue.main.async {
                 cell.from = threadDetail.messages[0].from
+                cell.snippet = threadDetail.messages[0].headerValueFor(key: "Subject")
+                cell.date = threadDetail.messages[0].headerValueFor(key: "Date")
             }
         })
         return cell
@@ -148,18 +111,28 @@ extension FolderViewController {
         spinner.startAnimating()
         footer.addSubview(spinner)
         tableView.tableFooterView = footer
+        tableView.tableFooterView?.isHidden = true
     }
 }
 
 // Methods related to loading new batch once scrolled to bottom
 extension FolderViewController: UIScrollViewDelegate {
     func loadNextBatch() {
+        if doneFetching {
+            return
+        }
         isFetchingNextBatch = true
-        Model.shared.fetchNextThreadBatch(withSize: batchSize, completionHandler: {
-            _ in
+        tableView.tableFooterView?.isHidden = false
+        Model.shared.fetchNextThreadBatch(withSize: batchSize, withLabelId: label.id, completionHandler: {
+            threadListResponse in
             self.isFetchingNextBatch = false
+            if threadListResponse.resultSizeEstimate == 0 {
+                self.doneFetching = true
+            }
             DispatchQueue.main.async {
                 self.tableView.reloadData()
+                self.tableView.isHidden = false
+                self.tableView.tableFooterView?.isHidden = true
             }
         })
     }
@@ -169,7 +142,7 @@ extension FolderViewController: UIScrollViewDelegate {
             return
         }
         let position = scrollView.contentOffset.y
-        if position > (tableView.contentSize.height - 100 - scrollView.frame.height) {
+        if position > (tableView.contentSize.height - 100 - scrollView.frame.height), !doneFetching {
             loadNextBatch()
         }
     }
@@ -177,14 +150,20 @@ extension FolderViewController: UIScrollViewDelegate {
 
 extension FolderViewController {
     @objc func partialSync() {
-        Model.shared.partialSync(folder: kind) {
+        Model.shared.partialSync(withLabelId: label.id) {
             DispatchQueue.main.async {
-                // TODO: Check
-                self.tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
-                // self.tableView.reloadSections(IndexSet([0]), with: .automatic)
-                // self.tableView.reloadData()
+                self.tableView.reloadData()
             }
         }
         refreshControl.endRefreshing()
+    }
+
+    func performInitialFullSync() {
+        Model.shared.fullSync(batchSize: batchSize, withLabelId: label.id, completionHandler: {
+            _ in
+            DispatchQueue.main.async {
+                self.tableView?.reloadData()
+            }
+        })
     }
 }
