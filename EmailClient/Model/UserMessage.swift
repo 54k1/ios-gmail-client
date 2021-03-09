@@ -48,16 +48,46 @@ class UserMessage: Codable {
         return nil
     }
 
-    var from: String? {
-        let from = headerValueFor(key: "From")
-        if let index = from?.firstIndex(of: "<") {
-            return String(from!.prefix(upTo: index))
+    var fromName: String? {
+        guard let from = headerValueFor(key: "From") else {
+            return nil
         }
-        return from
+        return Self.extractName(from)
     }
 
-    var to: String? {
-        headerValueFor(key: "To")
+    var fromEmail: String? {
+        guard let from = headerValueFor(key: "From") else {
+            return nil
+        }
+        return Self.extractEmail(from)
+    }
+
+    private static func extractName(_ string: String) -> String {
+        if let index = string.firstIndex(of: "<") {
+            return String(string.prefix(upTo: index))
+        }
+        return string
+    }
+
+    private static func extractEmail(_ string: String) -> String {
+        if let index = string.firstIndex(of: "<") {
+            return String(string.suffix(from: index))
+        }
+        return string
+    }
+
+    var toName: String? {
+        guard let to = headerValueFor(key: "To") else {
+            return nil
+        }
+        return Self.extractName(to)
+    }
+
+    var toEmail: String? {
+        guard let to = headerValueFor(key: "To") else {
+            return nil
+        }
+        return Self.extractEmail(to)
     }
 }
 

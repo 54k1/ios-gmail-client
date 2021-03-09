@@ -51,7 +51,7 @@ class LoginViewController: UIViewController {
             // present(vc, animated: true)
 
             //
-            let vc2 = storyboard?.instantiateViewController(identifier: "menuNavVC") as! UIViewController
+            let vc2 = storyboard?.instantiateViewController(withIdentifier: MenuViewController.navigationControllerStoryboardID) as! UIViewController
             vc2.modalPresentationStyle = .fullScreen
             present(vc2, animated: true)
         } else {

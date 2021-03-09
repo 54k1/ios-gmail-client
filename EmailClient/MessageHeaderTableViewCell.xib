@@ -9,11 +9,11 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
-        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="MessageHeaderTableViewCell" id="KGk-i7-Jjw" customClass="MessageHeaderTableViewCell" customModule="EmailClient" customModuleProvider="target">
-            <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="MessageHeaderTableViewCell" rowHeight="140" id="KGk-i7-Jjw" customClass="MessageHeaderTableViewCell" customModule="EmailClient" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="140"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
-                <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                <rect key="frame" x="0.0" y="0.0" width="320" height="140"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="zol-u5-GeH">
@@ -29,20 +29,53 @@
                         <nil key="textColor"/>
                         <nil key="highlightedColor"/>
                     </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="From" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PVR-ZO-ns3">
+                        <rect key="frame" x="16" y="61" width="39.5" height="21"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="To" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="N0o-Td-Te4">
+                        <rect key="frame" x="16" y="90" width="18.5" height="21"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6sz-VA-kgO">
+                        <rect key="frame" x="76" y="61" width="40.5" height="21"/>
+                        <fontDescription key="fontDescription" type="system" weight="thin" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JZR-VF-CoZ">
+                        <rect key="frame" x="76" y="90" width="40.5" height="21"/>
+                        <fontDescription key="fontDescription" type="system" weight="thin" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
                 </subviews>
                 <constraints>
-                    <constraint firstAttribute="bottom" secondItem="zol-u5-GeH" secondAttribute="bottom" constant="3" id="Cjf-Il-1vb"/>
-                    <constraint firstItem="zol-u5-GeH" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="3" id="PQh-4R-nEU"/>
-                    <constraint firstItem="Da1-uC-gga" firstAttribute="centerY" secondItem="H2p-sc-9uM" secondAttribute="centerY" id="QQf-DN-1y2"/>
-                    <constraint firstItem="Da1-uC-gga" firstAttribute="leading" secondItem="zol-u5-GeH" secondAttribute="trailing" constant="8" symbolic="YES" id="bjj-x7-q3f"/>
-                    <constraint firstItem="zol-u5-GeH" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="10" id="tGf-Xp-WF4"/>
+                    <constraint firstItem="JZR-VF-CoZ" firstAttribute="leading" secondItem="6sz-VA-kgO" secondAttribute="leading" id="8d6-bI-V63"/>
+                    <constraint firstItem="Da1-uC-gga" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="56" id="DIc-np-SR9"/>
+                    <constraint firstItem="6sz-VA-kgO" firstAttribute="leading" secondItem="PVR-ZO-ns3" secondAttribute="trailing" constant="20.5" id="Fdc-uR-CbP"/>
+                    <constraint firstItem="PVR-ZO-ns3" firstAttribute="top" secondItem="zol-u5-GeH" secondAttribute="bottom" constant="20" id="Hps-7T-p2z"/>
+                    <constraint firstItem="zol-u5-GeH" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="10" id="IIQ-BK-hP9"/>
+                    <constraint firstItem="N0o-Td-Te4" firstAttribute="top" secondItem="JZR-VF-CoZ" secondAttribute="top" id="IXI-zX-ztS"/>
+                    <constraint firstItem="PVR-ZO-ns3" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="16" id="R9Y-hh-lN9"/>
+                    <constraint firstItem="Da1-uC-gga" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="11.5" id="TBe-Sr-bZI"/>
+                    <constraint firstItem="N0o-Td-Te4" firstAttribute="leading" secondItem="PVR-ZO-ns3" secondAttribute="leading" id="VSI-oZ-eDi"/>
+                    <constraint firstItem="6sz-VA-kgO" firstAttribute="top" secondItem="PVR-ZO-ns3" secondAttribute="top" id="dhE-NO-I20"/>
+                    <constraint firstItem="zol-u5-GeH" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="3" id="xdR-95-CMD"/>
+                    <constraint firstItem="N0o-Td-Te4" firstAttribute="top" secondItem="PVR-ZO-ns3" secondAttribute="bottom" constant="8" symbolic="YES" id="zqT-Qb-Yi7"/>
                 </constraints>
             </tableViewCellContentView>
             <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
             <connections>
+                <outlet property="fromLabel" destination="6sz-VA-kgO" id="LYj-RD-AxH"/>
+                <outlet property="toLabel" destination="JZR-VF-CoZ" id="oCa-uA-ENw"/>
                 <outlet property="usernameLabel" destination="Da1-uC-gga" id="mNo-Dh-fS9"/>
             </connections>
-            <point key="canvasLocation" x="131.8840579710145" y="109.82142857142857"/>
+            <point key="canvasLocation" x="131.8840579710145" y="141.96428571428569"/>
         </tableViewCell>
     </objects>
     <resources>

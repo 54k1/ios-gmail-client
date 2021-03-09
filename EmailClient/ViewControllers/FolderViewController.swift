@@ -12,7 +12,6 @@ class FolderViewController: UIViewController {
     // MARK: Outlets
 
     @IBOutlet var tableView: UITableView!
-    @IBOutlet var refreshButton: UIButton!
 
     // MARK: Properties
 
@@ -32,7 +31,6 @@ class FolderViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        refreshButton.addTarget(self, action: #selector(partialSync), for: .touchUpInside)
         tableView.tableFooterView = UIView()
         tableView.register(ThreadTableViewCell.nib, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
@@ -80,7 +78,7 @@ extension FolderViewController: UITableViewDataSource {
         Model.shared.fetchThreadDetail(withId: thread.id, completionHandler: {
             threadDetail in
             DispatchQueue.main.async {
-                cell.from = threadDetail.messages[0].from
+                cell.from = threadDetail.messages[0].fromName
                 cell.snippet = threadDetail.messages[0].headerValueFor(key: "Subject")
                 cell.date = threadDetail.messages[0].headerValueFor(key: "Date")
             }

@@ -464,16 +464,17 @@ extension Model {
         let labels: [Label]
     }
 
-    func fetchLabels() {
+    func fetchLabels(_ completionHandler: @escaping (LabelsListResponse) -> Void) {
         let request = makeRequest(withMethod: .label(.list), withQueryItems: nil)
         Networker.fetch(fromRequest: request) {
             (result: NetworkerResult<LabelsListResponse>) in
             guard case let .success(labelsListResponse) = result else {
                 return
             }
-            for label in labelsListResponse.labels {
-                print(label)
-            }
+            completionHandler(labelsListResponse)
+            // for label in labelsListResponse.labels {
+            //     print(label)
+            // }
         }
     }
 }

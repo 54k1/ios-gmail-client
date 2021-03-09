@@ -16,6 +16,7 @@ class ThreadDetailViewController: UIViewController {
     var threadId: String!
     var threadDetail: ThreadDetail!
     var scrollHeight = [IndexPath: CGFloat]()
+    var expandedCells = Set<IndexPath>()
 
     // MARK: Outlets
 
@@ -32,6 +33,7 @@ class ThreadDetailViewController: UIViewController {
         tableView.register(MessageFooterTableViewCell.nib, forCellReuseIdentifier: MessageFooterTableViewCell.identifier)
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
+        tableView.tableFooterView = UIView()
 
         Model.shared.fetchThreadDetail(withId: threadId, completionHandler: {
             threadDetail in
@@ -56,19 +58,17 @@ extension ThreadDetailViewController: UITableViewDataSource {
     func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let (section, row) = (indexPath.section, indexPath.row)
         if row == 0 {
-            // let cell = UINib(nibName: MessageHeaderTableViewCell.nibName, bundle: nil).instantia
             let cell = tableView.dequeueReusableCell(withIdentifier: MessageHeaderTableViewCell.identifier, for: indexPath) as! MessageHeaderTableViewCell
-            cell.usernameLabel.text = threadDetail.messages[section].from
+            cell.usernameLabel.text = threadDetail.messages[section].fromName
+            cell.fromLabel.text = threadDetail.messages[section].fromEmail
+            cell.toLabel.text = threadDetail.messages[section].toEmail
             return cell
         } else if row == 1 {
             let cell = UINib(nibName: "ThreadDetailTableViewCell", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! ThreadDetailTableViewCell
             cell.indexPath = indexPath
-            // let cell = tableView.dequeueReusableCell(withIdentifier: ThreadDetailTableViewCell.identifier, for: indexPath) as! ThreadDetailTableViewCell
             cell.delegate = self
 
             render(threadDetail.messages[section], at: cell)
-            // cell.html = threadDetail.messages[section]
-
             return cell
         } else if row == 2 {
             let cell = tableView.dequeueReusableCell(withIdentifier: MessageFooterTableViewCell.identifier, for: indexPath) as! MessageFooterTableViewCell
@@ -84,11 +84,32 @@ extension ThreadDetailViewController: UITableViewDelegate {
         if let height = scrollHeight[indexPath] {
             return height
         }
+        if expandedCells.contains(indexPath) {
+            return 150
+        }
         return UITableView.automaticDimension
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
+        let row = indexPath.row
+        if row == 0 {
+            if expandedCells.contains(indexPath) {
+                expandedCells.remove(indexPath)
+            } else {
+                expandedCells.insert(indexPath)
+            }
+            tableView.beginUpdates()
+            tableView.endUpdates()
+        }
+    }
+
+    func tableView(_: UITableView, viewForFooterInSection _: Int) -> UIView? {
+        return UIView()
+    }
+
+    func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
+        return 20
     }
 }
 

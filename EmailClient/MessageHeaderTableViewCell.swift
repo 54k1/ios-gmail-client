@@ -16,6 +16,8 @@ class MessageHeaderTableViewCell: UITableViewCell {
     // MARK: Outlets
 
     @IBOutlet var usernameLabel: UILabel!
+    @IBOutlet var fromLabel: UILabel!
+    @IBOutlet var toLabel: UILabel!
 
     override func awakeFromNib() {
         super.awakeFromNib()

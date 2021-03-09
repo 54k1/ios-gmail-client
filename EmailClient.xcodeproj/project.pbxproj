@@ -12,12 +12,11 @@
 		B00658AC25D15D8400EA3BCA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B00658AB25D15D8400EA3BCA /* GoogleService-Info.plist */; };
 		B011E62E25ECF88B002FDB34 /* FolderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62825ECF88A002FDB34 /* FolderViewController.swift */; };
 		B011E62F25ECF88B002FDB34 /* MessageComposeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62925ECF88A002FDB34 /* MessageComposeViewController.swift */; };
-		B011E63125ECF88B002FDB34 /* MenuTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62B25ECF88A002FDB34 /* MenuTableViewController.swift */; };
+		B011E63125ECF88B002FDB34 /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62B25ECF88A002FDB34 /* MenuViewController.swift */; };
 		B011E63225ECF88B002FDB34 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62C25ECF88A002FDB34 /* LoginViewController.swift */; };
 		B011E63325ECF88B002FDB34 /* ThreadDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62D25ECF88B002FDB34 /* ThreadDetailViewController.swift */; };
 		B024066425DA372A00884D1E /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024066325DA372A00884D1E /* Model.swift */; };
 		B024066925DA38BF00884D1E /* MessageTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024066825DA38BF00884D1E /* MessageTableViewCell.swift */; };
-		B029684025EF84AD001A6AC6 /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B029683F25EF84AD001A6AC6 /* MenuViewController.swift */; };
 		B041832525EBB0390065E94F /* ThreadDetailTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */; };
 		B041832625EBB0390065E94F /* ThreadDetailTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = B041832425EBB0390065E94F /* ThreadDetailTableViewCell.xib */; };
 		B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */; };
@@ -65,12 +64,11 @@
 		B00658AB25D15D8400EA3BCA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B011E62825ECF88A002FDB34 /* FolderViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FolderViewController.swift; sourceTree = "<group>"; };
 		B011E62925ECF88A002FDB34 /* MessageComposeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageComposeViewController.swift; sourceTree = "<group>"; };
-		B011E62B25ECF88A002FDB34 /* MenuTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuTableViewController.swift; sourceTree = "<group>"; };
+		B011E62B25ECF88A002FDB34 /* MenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuViewController.swift; sourceTree = "<group>"; };
 		B011E62C25ECF88A002FDB34 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		B011E62D25ECF88B002FDB34 /* ThreadDetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThreadDetailViewController.swift; sourceTree = "<group>"; };
 		B024066325DA372A00884D1E /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		B024066825DA38BF00884D1E /* MessageTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageTableViewCell.swift; sourceTree = "<group>"; };
-		B029683F25EF84AD001A6AC6 /* MenuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuViewController.swift; path = EmailClient/MenuViewController.swift; sourceTree = SOURCE_ROOT; };
 		B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadDetailTableViewCell.swift; sourceTree = "<group>"; };
 		B041832425EBB0390065E94F /* ThreadDetailTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ThreadDetailTableViewCell.xib; sourceTree = "<group>"; };
 		B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadTableViewCell.swift; sourceTree = "<group>"; };
@@ -132,10 +130,9 @@
 		B011E62725ECF874002FDB34 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
-				B029683F25EF84AD001A6AC6 /* MenuViewController.swift */,
 				B011E62825ECF88A002FDB34 /* FolderViewController.swift */,
 				B011E62C25ECF88A002FDB34 /* LoginViewController.swift */,
-				B011E62B25ECF88A002FDB34 /* MenuTableViewController.swift */,
+				B011E62B25ECF88A002FDB34 /* MenuViewController.swift */,
 				B011E62925ECF88A002FDB34 /* MessageComposeViewController.swift */,
 				B011E62D25ECF88B002FDB34 /* ThreadDetailViewController.swift */,
 			);
@@ -528,11 +525,10 @@
 				B0C847F425D573C2004A0861 /* UserMessage.swift in Sources */,
 				B024066925DA38BF00884D1E /* MessageTableViewCell.swift in Sources */,
 				B0834B7D25D14D93008E1807 /* AppDelegate.swift in Sources */,
-				B029684025EF84AD001A6AC6 /* MenuViewController.swift in Sources */,
 				B0A1892225F70E4200D3E4CE /* MessageHeaderTableViewCell.swift in Sources */,
 				B0834B7F25D14D93008E1807 /* SceneDelegate.swift in Sources */,
 				B041832525EBB0390065E94F /* ThreadDetailTableViewCell.swift in Sources */,
-				B011E63125ECF88B002FDB34 /* MenuTableViewController.swift in Sources */,
+				B011E63125ECF88B002FDB34 /* MenuViewController.swift in Sources */,
 				B011E63325ECF88B002FDB34 /* ThreadDetailViewController.swift in Sources */,
 				B011E62F25ECF88B002FDB34 /* MessageComposeViewController.swift in Sources */,
 				B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */,
