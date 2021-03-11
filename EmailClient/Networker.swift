@@ -15,12 +15,12 @@ typealias NetworkerResult<T> = Result<T, HttpError>
 
 class Networker {
     static func request(_ request: URLRequest, completionHandler: @escaping (NetworkerResult<Data?>) -> Void) {
+        // URLSessionConfiguration.
         let task = URLSession.shared.dataTask(with: request) {
-            data, response, error in
+            data, _, error in
             guard case .none = error else {
                 return
             }
-            print("response=", response)
             guard let data = data else {
                 return
             }

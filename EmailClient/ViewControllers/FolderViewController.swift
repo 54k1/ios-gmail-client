@@ -47,13 +47,6 @@ class FolderViewController: UIViewController {
     override func viewDidAppear(_: Bool) {
         tableView.reloadData()
     }
-
-    @IBSegueAction func showThreadDetail(_ coder: NSCoder, sender: Any?, segueIdentifier _: String?) -> ThreadDetailViewController? {
-        let vc = ThreadDetailViewController(coder: coder)
-        let cell = sender as! MessageTableViewCell
-        vc?.threadId = cell.threadId
-        return vc
-    }
 }
 
 extension FolderViewController: UITableViewDataSource {
@@ -91,9 +84,17 @@ extension FolderViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as! ThreadTableViewCell
         let threadId = cell.threadId
-        let vc = storyboard?.instantiateViewController(identifier: "threadDetailVC") as! ThreadDetailViewController
-        vc.threadId = threadId
-        navigationController?.pushViewController(vc, animated: true)
+        // let vc = storyboard?.instantiateViewController(identifier: "threadDetailVC") as! ThreadDetailViewController
+        // vc.threadId = threadId
+        Model.shared.fetchThread(withId: threadId!, {
+            threadDetail in
+            let vc = ThreadViewController()
+            vc.configure(with: threadDetail)
+            self.navigationController?.pushViewController(vc, animated: true)
+        })
+        // let vc = ThreadViewController()
+        // vc.configure(with: threadId!)
+        // navigationController?.pushViewController(vc, animated: true)
     }
 
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {

@@ -225,7 +225,7 @@ extension Model {
             completionHandler(threadDetail)
             return
         }
-        let request = makeRequest(withMethod: .thread(.get(id: threadId)))
+        let request = makeRequest(withMethod: .threads(.get(id: threadId)))
         Networker.fetch(fromRequest: request) {
             (result: NetworkerResult<ThreadDetail>) in
             guard case let .success(threadDetail) = result else {
@@ -246,16 +246,22 @@ extension Model {
 
     enum Method {
         enum MessageMethod {
+            case get(id: String, attachmentId: String? = nil)
             case list
+            case attachments(AttachmentMethod)
+            
+            enum AttachmentMethod {
+                case get(id: String)
+            }
         }
 
-        case message(MessageMethod)
+        case messages(MessageMethod)
         enum ThreadMethod {
             case list
             case get(id: String)
         }
 
-        case thread(ThreadMethod)
+        case threads(ThreadMethod)
         enum HistoryMethod {
             case list
         }
@@ -266,18 +272,29 @@ extension Model {
             case list
         }
 
-        case label(LabelMethod)
+        case labels(LabelMethod)
 
         func toString() -> String {
             var path = ""
             switch self {
-            case let .message(method):
+            case let .messages(method):
                 path += "/messages"
                 switch method {
                 case .list:
                     path += ""
+                case .get(let id, let aid):
+                    path += "/\(id)"
+                    if let attachmentId = aid {
+                        path += "/attachments/\(attachmentId)"
+                    }
+                case.attachments(let method):
+                    path += "/attachments"
+                    switch method {
+                    case .get(let id):
+                        path += "/get/\(id)"
+                    }
                 }
-            case let .thread(method):
+            case let .threads(method):
                 path += "/threads"
                 switch method {
                 case let .get(id):
@@ -291,7 +308,7 @@ extension Model {
                 case .list:
                     path += ""
                 }
-            case let .label(method):
+            case let .labels(method):
                 path += "/labels"
                 switch method {
                 case .list:
@@ -323,7 +340,7 @@ extension Model {
             return
         }
 
-        let request = makeRequest(withMethod: .thread(.list), withQueryItems: [
+        let request = makeRequest(withMethod: .threads(.list), withQueryItems: [
             URLQueryItem(name: "labelIds", value: labelId),
             URLQueryItem(name: "maxResults", value: String(size)),
             URLQueryItem(name: "pageToken", value: nextPageToken.toString()),
@@ -399,7 +416,8 @@ extension Model {
                 let group = DispatchGroup()
                 if let messagesAdded = historyObject.messagesAdded {
                     for addedMessage in messagesAdded {
-                        queue.async(group: group) { self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
+                        group.enter()
+                        self.fetchMessage(withId: addedMessage.message.id, completionHandler: {
                             newMessage in
                             self.messageWithId[newMessage.id] = newMessage
                             if let threadDetail = self.threadDetailWithId[newMessage.threadId] {
@@ -410,12 +428,15 @@ extension Model {
                             } else {
                                 let partThread = ThreadListResponse.PartThread(id: newMessage.threadId, snippet: newMessage.snippet, historyId: newMessage.historyId)
                                 self.threads.insert(partThread, at: 0)
+                                group.enter()
                                 queue.async(group: group) {
-                                    self.fetchThreadDetail(withId: newMessage.threadId, completionHandler: { _ in () })
+                                    self.fetchThreadDetail(withId: newMessage.threadId, completionHandler: { _ in
+                                        group.leave()
+                                    })
                                 }
                             }
+                            group.leave()
                         })
-                        }
                     }
                 }
                 if let messagesDeleted = historyObject.messagesDeleted {
@@ -433,14 +454,15 @@ extension Model {
                 } else {
                     print("no deleted messages")
                 }
-                group.wait()
-                self.threads.sort(by: {
-                    let threadDetail0 = self.threadDetailWithId[$0.id]!
-                    let threadDetail1 = self.threadDetailWithId[$1.id]!
-                    return Int(threadDetail0.historyId)! > Int(threadDetail1.historyId)!
-                })
-                print("sorted")
-                completionHandler()
+                group.notify(queue: queue) {
+                    self.threads.sort(by: {
+                        let threadDetail0 = self.threadDetailWithId[$0.id]!
+                        let threadDetail1 = self.threadDetailWithId[$1.id]!
+                        return Int(threadDetail0.historyId)! > Int(threadDetail1.historyId)!
+                    })
+                    print("sorted")
+                    completionHandler()
+                }
             }
         }
     }
@@ -465,7 +487,7 @@ extension Model {
     }
 
     func fetchLabels(_ completionHandler: @escaping (LabelsListResponse) -> Void) {
-        let request = makeRequest(withMethod: .label(.list), withQueryItems: nil)
+        let request = makeRequest(withMethod: .labels(.list), withQueryItems: nil)
         Networker.fetch(fromRequest: request) {
             (result: NetworkerResult<LabelsListResponse>) in
             guard case let .success(labelsListResponse) = result else {
@@ -475,6 +497,21 @@ extension Model {
             // for label in labelsListResponse.labels {
             //     print(label)
             // }
+        }
+    }
+}
+
+// MARK: Attachment
+
+extension Model {
+    func fetchAttachment(withId id: String, withMessageId messageId: String, completionHandler: @escaping (UserMessagePartBody) -> Void ) {
+        let request = makeRequest(withMethod: .messages(.get(id: messageId, attachmentId: id)))
+        Networker.fetch(fromRequest: request) {
+            (result: NetworkerResult<UserMessagePartBody>) in
+            guard case .success(let partBody) = result else {
+                return
+            }
+            completionHandler(partBody)
         }
     }
 }

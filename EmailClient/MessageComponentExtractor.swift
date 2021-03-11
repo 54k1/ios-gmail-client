@@ -17,7 +17,7 @@ enum ExtractionError: String, Error {
 
 struct Attachment {
     let id: String
-    let filename: String
+    var filename: String
 }
 
 struct Alternative {
