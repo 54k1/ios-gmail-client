@@ -15,8 +15,7 @@ class MessageBodyTableViewCell: UITableViewCell {
 
     var delegate: ParentTableViewDelegate?
     var indexPath: IndexPath?
-    
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         webView = WKWebView()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -24,11 +23,12 @@ class MessageBodyTableViewCell: UITableViewCell {
         webView.scrollView.bounces = false
         contentView.addSubview(webView)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         webView.frame = contentView.bounds
@@ -50,10 +50,10 @@ extension MessageBodyTableViewCell {
 }
 
 extension MessageBodyTableViewCell: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
         print("didFinish")
         webView.evaluateJavaScript("document.body.scrollHeight", completionHandler: {
-            result, error in
+            result, _ in
             if let height = result as? CGFloat {
                 self.delegate?.setHeight(to: height, at: self.indexPath!)
             }

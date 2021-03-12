@@ -32,7 +32,7 @@ class FolderViewController: UIViewController {
         super.viewDidLoad()
 
         tableView.tableFooterView = UIView()
-        tableView.register(ThreadTableViewCell.nib, forCellReuseIdentifier: ThreadTableViewCell.identifier)
+        tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
         tableView.dataSource = self
         refreshControl.attributedTitle = NSAttributedString(string: "Syncing")
@@ -65,33 +65,23 @@ extension FolderViewController: UITableViewDataSource {
 
         let row = indexPath.row
         let thread = threads[row]
-        cell.threadId = thread.id
-        cell.snippet = thread.snippet
-
-        Model.shared.fetchThreadDetail(withId: thread.id, completionHandler: {
-            threadDetail in
-            DispatchQueue.main.async {
-                cell.from = threadDetail.messages[0].fromName
-                cell.snippet = threadDetail.messages[0].headerValueFor(key: "Subject")
-                cell.date = threadDetail.messages[0].headerValueFor(key: "Date")
-            }
-        })
+        cell.configure(with: thread.id)
         return cell
     }
 }
 
 extension FolderViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let cell = tableView.cellForRow(at: indexPath) as! ThreadTableViewCell
-        let threadId = cell.threadId
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // let cell = tableView.cellForRow(at: indexPath) as! ThreadTableViewCell
+        let threadId = threads[indexPath.row].id
         // let vc = storyboard?.instantiateViewController(identifier: "threadDetailVC") as! ThreadDetailViewController
         // vc.threadId = threadId
-        Model.shared.fetchThread(withId: threadId!, {
+        Model.shared.fetchThread(withId: threadId) {
             threadDetail in
             let vc = ThreadViewController()
             vc.configure(with: threadDetail)
             self.navigationController?.pushViewController(vc, animated: true)
-        })
+        }
         // let vc = ThreadViewController()
         // vc.configure(with: threadId!)
         // navigationController?.pushViewController(vc, animated: true)

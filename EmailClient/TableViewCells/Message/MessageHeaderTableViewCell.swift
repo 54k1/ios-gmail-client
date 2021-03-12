@@ -9,24 +9,44 @@ import UIKit
 
 class MessageHeaderTableViewCell: UITableViewCell {
     static let identifier = "MessageHeaderTableViewCell"
-    static var nib: UINib {
-        return UINib(nibName: Self.identifier, bundle: nil)
+
+    private let userLabel = UILabel()
+    private let dateLabel = UILabel()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        contentView.addSubview(userLabel)
+        contentView.addSubview(dateLabel)
     }
 
-    // MARK: Outlets
-
-    @IBOutlet var usernameLabel: UILabel!
-    @IBOutlet var fromLabel: UILabel!
-    @IBOutlet var toLabel: UILabel!
-
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        // Initialization code
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
-    override func setSelected(_ selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        imageView?.image = UIImage(systemName: "person")
+        userLabel.numberOfLines = 0
+        dateLabel.numberOfLines = 0
+        userLabel.frame = CGRect(x: 50, y: 0, width: contentView.frame.width - 50, height: contentView.frame.height)
+        dateLabel.frame = CGRect(x: 320, y: 0, width: 100, height: contentView.frame.height)
+    }
 
-        // Configure the view for the selected state
+    func configure(with message: UserMessage) {
+        userLabel.attributedText = NSAttributedString(string: message.fromName!, attributes: [
+            .strokeColor: UIColor.black,
+            .font: UIFont.boldSystemFont(ofSize: 20),
+        ])
+        let dateString = message.headerValueFor(key: "Date")!
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+        let date = formatter.date(from: dateString)!
+        if date.distance(to: Date()) > 24 * 60 * 60 {
+            formatter.dateFormat = "dd MMM"
+        } else {
+            formatter.dateFormat = "HH:mm"
+        }
+        dateLabel.text = formatter.string(from: date)
     }
 }

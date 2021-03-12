@@ -29,7 +29,7 @@ class ThreadDetailViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(ThreadDetailTableViewCell.nibName, forCellReuseIdentifier: ThreadDetailTableViewCell.identifier)
-        tableView.register(MessageHeaderTableViewCell.nib, forCellReuseIdentifier: MessageHeaderTableViewCell.identifier)
+        tableView.register(MessageHeaderTableViewCell.self, forCellReuseIdentifier: MessageHeaderTableViewCell.identifier)
         tableView.register(MessageFooterTableViewCell.nib, forCellReuseIdentifier: MessageFooterTableViewCell.identifier)
         tableView.estimatedRowHeight = 44
         tableView.rowHeight = UITableView.automaticDimension
@@ -59,9 +59,7 @@ extension ThreadDetailViewController: UITableViewDataSource {
         let (section, row) = (indexPath.section, indexPath.row)
         if row == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: MessageHeaderTableViewCell.identifier, for: indexPath) as! MessageHeaderTableViewCell
-            cell.usernameLabel.text = threadDetail.messages[section].fromName
-            cell.fromLabel.text = threadDetail.messages[section].fromEmail
-            cell.toLabel.text = threadDetail.messages[section].toEmail
+            cell.configure(with: threadDetail.messages[row])
             return cell
         } else if row == 1 {
             let cell = UINib(nibName: "ThreadDetailTableViewCell", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! ThreadDetailTableViewCell

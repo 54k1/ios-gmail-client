@@ -249,7 +249,7 @@ extension Model {
             case get(id: String, attachmentId: String? = nil)
             case list
             case attachments(AttachmentMethod)
-            
+
             enum AttachmentMethod {
                 case get(id: String)
             }
@@ -282,15 +282,15 @@ extension Model {
                 switch method {
                 case .list:
                     path += ""
-                case .get(let id, let aid):
+                case let .get(id, aid):
                     path += "/\(id)"
                     if let attachmentId = aid {
                         path += "/attachments/\(attachmentId)"
                     }
-                case.attachments(let method):
+                case let .attachments(method):
                     path += "/attachments"
                     switch method {
-                    case .get(let id):
+                    case let .get(id):
                         path += "/get/\(id)"
                     }
                 }
@@ -504,11 +504,11 @@ extension Model {
 // MARK: Attachment
 
 extension Model {
-    func fetchAttachment(withId id: String, withMessageId messageId: String, completionHandler: @escaping (UserMessagePartBody) -> Void ) {
+    func fetchAttachment(withId id: String, withMessageId messageId: String, completionHandler: @escaping (UserMessagePartBody) -> Void) {
         let request = makeRequest(withMethod: .messages(.get(id: messageId, attachmentId: id)))
         Networker.fetch(fromRequest: request) {
             (result: NetworkerResult<UserMessagePartBody>) in
-            guard case .success(let partBody) = result else {
+            guard case let .success(partBody) = result else {
                 return
             }
             completionHandler(partBody)
