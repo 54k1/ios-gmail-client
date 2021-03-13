@@ -71,9 +71,10 @@ extension MessageTableViewCell: UITableViewDelegate, UITableViewDataSource {
             cell.configure(with: htmlString)
             return cell
         case 2:
-            let cell = tableView.dequeueReusableCell(withIdentifier: MessageFooterTableViewCell.identifier, for: indexPath)
+            // let cell = tableView.dequeueReusableCell(withIdentifier: MessageFooterTableViewCell.identifier, for: indexPath)
             heightAt[indexPath] = 44
-            return cell
+            // return cell
+            return UITableViewCell()
         case 3:
             let cell = tableView.dequeueReusableCell(withIdentifier: MessageAttachmentsTableViewCell.identifier, for: indexPath) as! MessageAttachmentsTableViewCell
             cell.delegate = self
@@ -146,7 +147,6 @@ extension MessageTableViewCell {
         }
 
         htmlString = "<html><head><meta charset='utf8'><meta name = 'viewport' content = 'width=device-width'></head>" + htmlContent.data + "</html>"
-        print("set htmlString: \(htmlString)")
     }
 }
 

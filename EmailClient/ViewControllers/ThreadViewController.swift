@@ -49,7 +49,12 @@ class ThreadViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        subjectHeader.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 40)
+        subjectHeader.translatesAutoresizingMaskIntoConstraints = false
+        subjectHeader.backgroundColor = .white
+        NSLayoutConstraint.activate([
+            subjectHeader.heightAnchor.constraint(equalToConstant: 70),
+            subjectHeader.widthAnchor.constraint(equalTo: view.widthAnchor)
+        ])
     }
 }
 

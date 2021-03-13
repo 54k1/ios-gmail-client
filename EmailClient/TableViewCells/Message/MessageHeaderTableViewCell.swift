@@ -28,9 +28,16 @@ class MessageHeaderTableViewCell: UITableViewCell {
         super.layoutSubviews()
         imageView?.image = UIImage(systemName: "person")
         userLabel.numberOfLines = 0
-        dateLabel.numberOfLines = 0
-        userLabel.frame = CGRect(x: 50, y: 0, width: contentView.frame.width - 50, height: contentView.frame.height)
-        dateLabel.frame = CGRect(x: 320, y: 0, width: 100, height: contentView.frame.height)
+        userLabel.translatesAutoresizingMaskIntoConstraints = false
+        dateLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            userLabel.leadingAnchor.constraint(equalTo: imageView!.trailingAnchor, constant: 10),
+            userLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 10)
+        ])
+        NSLayoutConstraint.activate([
+            dateLabel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -10),
+            dateLabel.centerYAnchor.constraint(equalTo: userLabel.centerYAnchor)
+        ])
     }
 
     func configure(with message: UserMessage) {

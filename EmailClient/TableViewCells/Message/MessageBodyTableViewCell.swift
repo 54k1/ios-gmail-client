@@ -32,13 +32,6 @@ class MessageBodyTableViewCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         webView.frame = contentView.bounds
-        let constraints = [
-            webView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor),
-            webView.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor),
-            webView.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor),
-        ]
-        NSLayoutConstraint.activate(constraints)
     }
 }
 
