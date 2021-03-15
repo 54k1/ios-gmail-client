@@ -19,6 +19,7 @@ class MessageAttachmentsTableViewCell: UITableViewCell {
         return collectionView
     }()
 
+    private let padding: CGFloat = 10
     private var attachments: [Attachment]!
     var delegate: ParentTableViewDelegate?
     var previewDelegate: PreviewDelegate?
@@ -56,16 +57,7 @@ class MessageAttachmentsTableViewCell: UITableViewCell {
 extension MessageAttachmentsTableViewCell {
     func configure(with attachments: [Attachment]) {
         self.attachments = attachments
-        // attachments.forEach({
-        //     attachment in
-        //     Model.shared.fetchAttachment(withId: attachment.id, completionHandler: {
-        //         userMessagePartBody in
-        //         let data = userMessagePartBody.data
-        //         let decoded = GTLRDecodeWebSafeBase64(data)
-        //
-        //     })
-        // })
-        delegate?.setHeight(to: 60, at: indexPath)
+        delegate?.setHeight(to: 100, at: indexPath)
         collectionView.reloadData()
     }
 }
@@ -82,18 +74,20 @@ extension MessageAttachmentsTableViewCell: UICollectionViewDataSource, UICollect
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AttachmentCollectionViewCell.identifier, for: indexPath) as! AttachmentCollectionViewCell
         let attachment = attachments[indexPath.row]
-        Model.shared.fetchAttachment(withId: attachment.id, withMessageId: messageId, completionHandler: {
-            userMessagePartBody in
-            let decoded = GTLRDecodeWebSafeBase64(userMessagePartBody.data)
-            let vc = QLPreviewController()
-            vc.dataSource = self
-            // let contents = String(data: decoded!, encoding: .utf8)!
-
-            let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(attachment.filename)
-            try? decoded!.write(to: path)
-            self.pathOf[indexPath] = path
+        cell.configure(with: attachment.filename)
+         Model.shared.fetchAttachment(withId: attachment.id, withMessageId: messageId, completionHandler: {
+             userMessagePartBody in
+             let decoded = GTLRDecodeWebSafeBase64(userMessagePartBody.data)
+             let vc = QLPreviewController()
+             vc.dataSource = self
+             // let contents = String(data: decoded!, encoding: .utf8)!
+//
+             let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(attachment.filename)
+             try? decoded!.write(to: path)
+             self.pathOf[indexPath] = path
         })
-        cell.backgroundColor = .systemGreen
+        // cell.backgroundColor = .systemGreen
+        cell.configure(with: attachment.filename)
         return cell
     }
 
@@ -112,5 +106,20 @@ extension MessageAttachmentsTableViewCell: QLPreviewControllerDataSource {
 
     func previewController(_: QLPreviewController, previewItemAt _: Int) -> QLPreviewItem {
         previewItem
+    }
+}
+
+extension MessageAttachmentsTableViewCell: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let side = (collectionView.frame.width - 4*padding)/3
+        print("side=\(side)")
+        return CGSize(width: side, height: side)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        padding
+    }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        padding
     }
 }
