@@ -475,11 +475,17 @@ extension Model {
             case user
         }
 
+        struct Color: Codable {
+            let textColor: String
+            let backgroundColor: String
+        }
+
         let id: String
         let name: String
         let messageListVisibility: String?
         let labelListVisibility: String?
         let type: LabelType
+        let color: Color?
     }
 
     struct LabelsListResponse: Codable {
@@ -494,9 +500,6 @@ extension Model {
                 return
             }
             completionHandler(labelsListResponse)
-            // for label in labelsListResponse.labels {
-            //     print(label)
-            // }
         }
     }
 }

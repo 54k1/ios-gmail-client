@@ -11,17 +11,19 @@ import WebKit
 class MessageBodyTableViewCell: UITableViewCell {
     static let identifier = "MessageBodyTableViewCell"
 
-    private let webView: WKWebView
+    private let webView: WKWebView = {
+        let view = WKWebView()
+        view.scrollView.bounces = false
+        return view
+    } ()
 
-    var delegate: ParentTableViewDelegate?
+    weak var delegate: ParentTableViewDelegate?
     var indexPath: IndexPath?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        webView = WKWebView()
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        webView.navigationDelegate = self
-        webView.scrollView.bounces = false
         contentView.addSubview(webView)
+        webView.navigationDelegate = self
     }
 
     @available(*, unavailable)
@@ -37,14 +39,12 @@ class MessageBodyTableViewCell: UITableViewCell {
 
 extension MessageBodyTableViewCell {
     func configure(with htmlString: String) {
-        print("configure:\(Self.description())")
         webView.loadHTMLString(htmlString, baseURL: nil)
     }
 }
 
 extension MessageBodyTableViewCell: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
-        print("didFinish")
         webView.evaluateJavaScript("document.body.scrollHeight", completionHandler: {
             result, _ in
             if let height = result as? CGFloat {

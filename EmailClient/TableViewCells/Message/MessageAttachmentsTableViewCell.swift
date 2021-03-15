@@ -11,9 +11,11 @@ import UIKit
 
 class MessageAttachmentsTableViewCell: UITableViewCell {
     static let identifier = "MessageAttachmentsTableViewCell"
+    static var thumbnailCache = [String: [String: UIImage]]()
+
     private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
+        layout.scrollDirection = .vertical
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(AttachmentCollectionViewCell.self, forCellWithReuseIdentifier: AttachmentCollectionViewCell.identifier)
         return collectionView
@@ -21,12 +23,12 @@ class MessageAttachmentsTableViewCell: UITableViewCell {
 
     private let padding: CGFloat = 10
     private var attachments: [Attachment]!
-    var delegate: ParentTableViewDelegate?
-    var previewDelegate: PreviewDelegate?
+    weak var delegate: ParentTableViewDelegate?
+    weak var previewDelegate: PreviewDelegate?
     var indexPath: IndexPath!
     var messageId: String!
     private var contentsAt = [IndexPath: String]()
-    private var pathOf = [IndexPath: URL]()
+    private static var pathOf = [String: URL]()
     private var previewItem: QLPreviewItem!
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -57,7 +59,7 @@ class MessageAttachmentsTableViewCell: UITableViewCell {
 extension MessageAttachmentsTableViewCell {
     func configure(with attachments: [Attachment]) {
         self.attachments = attachments
-        delegate?.setHeight(to: 100, at: indexPath)
+        delegate?.setHeight(to: max(CGFloat(200 * attachments.count) / 3.0, 150), at: indexPath)
         collectionView.reloadData()
     }
 }
@@ -74,27 +76,61 @@ extension MessageAttachmentsTableViewCell: UICollectionViewDataSource, UICollect
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AttachmentCollectionViewCell.identifier, for: indexPath) as! AttachmentCollectionViewCell
         let attachment = attachments[indexPath.row]
-        cell.configure(with: attachment.filename)
-         Model.shared.fetchAttachment(withId: attachment.id, withMessageId: messageId, completionHandler: {
-             userMessagePartBody in
-             let decoded = GTLRDecodeWebSafeBase64(userMessagePartBody.data)
-             let vc = QLPreviewController()
-             vc.dataSource = self
-             // let contents = String(data: decoded!, encoding: .utf8)!
-//
-             let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(attachment.filename)
-             try? decoded!.write(to: path)
-             self.pathOf[indexPath] = path
-        })
-        // cell.backgroundColor = .systemGreen
-        cell.configure(with: attachment.filename)
+        cell.configure(withName: attachment.filename)
+        getPath(for: attachment) {
+            path in
+            self.generateThumbnail(for: attachment) {
+                thumbnail in
+                DispatchQueue.main.async {
+                    cell.configure(withImage: thumbnail)
+                }
+            }
+        }
         return cell
+    }
+
+    func getPath(for attachment: Attachment, completionHandler: @escaping (URL) -> Void) {
+        if let path = Self.pathOf[attachment.id] {
+            completionHandler(path)
+        } else {
+            Model.shared.fetchAttachment(withId: attachment.id, withMessageId: messageId, completionHandler: {
+                userMessagePartBody in
+                let decoded = GTLRDecodeWebSafeBase64(userMessagePartBody.data)
+                let vc = QLPreviewController()
+                vc.dataSource = self
+                let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(attachment.filename)
+                try? decoded!.write(to: path)
+                Self.pathOf[attachment.id] = path
+
+                completionHandler(path)
+            })
+        }
+    }
+
+    func generateThumbnail(for attachment: Attachment, completionHandler: @escaping (UIImage) -> Void) {
+        if let thumbnail = Self.thumbnailCache[messageId]?[attachment.id] {
+            completionHandler(thumbnail)
+        } else {
+            let request = QLThumbnailGenerator.Request(fileAt: Self.pathOf[attachment.id]!, size: CGSize(width: 100, height: 100), scale: 1, representationTypes: .all)
+            QLThumbnailGenerator.shared.generateBestRepresentation(for: request, completion: {
+                thumbnail, _ in
+                if let thumbnail = thumbnail {
+                    if Self.thumbnailCache[self.messageId] != nil {
+                        Self.thumbnailCache[self.messageId]![attachment.id] = thumbnail.uiImage
+                    } else {
+                        Self.thumbnailCache[self.messageId] = [String: UIImage]()
+                        Self.thumbnailCache[self.messageId]![attachment.id] = thumbnail.uiImage
+                    }
+                    completionHandler(thumbnail.uiImage)
+                } else {}
+            })
+        }
     }
 
     func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let vc = QLPreviewController()
         vc.dataSource = self
-        previewItem = pathOf[indexPath] as! QLPreviewItem
+        previewItem = Self.pathOf[attachments[indexPath.row].id]! as QLPreviewItem
         previewDelegate?.shouldPresent(vc, animated: true)
     }
 }
@@ -110,16 +146,16 @@ extension MessageAttachmentsTableViewCell: QLPreviewControllerDataSource {
 }
 
 extension MessageAttachmentsTableViewCell: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let side = (collectionView.frame.width - 4*padding)/3
-        print("side=\(side)")
+    func collectionView(_ collectionView: UICollectionView, layout _: UICollectionViewLayout, sizeForItemAt _: IndexPath) -> CGSize {
+        let side = (collectionView.frame.width - 4 * padding) / 3
         return CGSize(width: side, height: side)
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+
+    func collectionView(_: UICollectionView, layout _: UICollectionViewLayout, minimumLineSpacingForSectionAt _: Int) -> CGFloat {
         padding
     }
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+
+    func collectionView(_: UICollectionView, layout _: UICollectionViewLayout, minimumInteritemSpacingForSectionAt _: Int) -> CGFloat {
         padding
     }
 }

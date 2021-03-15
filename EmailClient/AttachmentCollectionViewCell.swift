@@ -5,28 +5,46 @@
 //  Created by SV on 11/03/21.
 //
 
-import UIKit
-import QuickLook
 import GoogleAPIClientForREST
+import QuickLook
+import UIKit
 
 class AttachmentCollectionViewCell: UICollectionViewCell {
     static let identifier = "AttachmentCollectionViewCell"
-    
-    private let titleView = UILabel()
-    private let imageView = UIImageView()
+
+    private let titleView: UILabel = {
+        let label = UILabel()
+        label.numberOfLines = 0
+        return label
+    } ()
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.isHidden = true
+        imageView.layer.borderColor = CGColor(red: 0, green: 0, blue: 0, alpha: 0.25)
+        imageView.layer.borderWidth = 1
+        return imageView
+    } ()
+    private let activityIndicator: UIActivityIndicatorView = {
+        let activityIndicator = UIActivityIndicatorView()
+        activityIndicator.isHidden = false
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.startAnimating()
+        return activityIndicator
+    } ()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(titleView)
         contentView.addSubview(imageView)
-        imageView.contentMode = .scaleAspectFit
-        titleView.numberOfLines = 0
+        contentView.addSubview(activityIndicator)
     }
     
-    required init?(coder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         titleView.translatesAutoresizingMaskIntoConstraints = false
@@ -34,17 +52,29 @@ class AttachmentCollectionViewCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             imageView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            // imageView.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
+            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
         ])
         NSLayoutConstraint.activate([
-            titleView.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
-            titleView.topAnchor.constraint(equalTo: imageView.bottomAnchor)
+            titleView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            titleView.topAnchor.constraint(equalTo: imageView.bottomAnchor),
         ])
+        activityIndicator.frame = imageView.frame
     }
-    
-    func configure(with filename: String) {
-        imageView.image = UIImage(systemName: "doc.plaintext")
+
+    func configure(withName filename: String) {
         titleView.text = filename
+    }
+
+    func configure(withImage image: UIImage) {
+        imageView.image = image
+        activityIndicator.stopAnimating()
+        imageView.isHidden = false
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        imageView.isHidden = true
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
     }
 }

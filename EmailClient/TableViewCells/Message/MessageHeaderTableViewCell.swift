@@ -32,11 +32,11 @@ class MessageHeaderTableViewCell: UITableViewCell {
         dateLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             userLabel.leadingAnchor.constraint(equalTo: imageView!.trailingAnchor, constant: 10),
-            userLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 10)
+            userLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 10),
         ])
         NSLayoutConstraint.activate([
             dateLabel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            dateLabel.centerYAnchor.constraint(equalTo: userLabel.centerYAnchor)
+            dateLabel.centerYAnchor.constraint(equalTo: userLabel.centerYAnchor),
         ])
     }
 

@@ -35,19 +35,19 @@ class ThreadTableViewCell: UITableViewCell {
         snippetLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             dateLabel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            dateLabel.centerYAnchor.constraint(equalTo: userLabel.centerYAnchor)
+            dateLabel.centerYAnchor.constraint(equalTo: userLabel.centerYAnchor),
         ])
         NSLayoutConstraint.activate([
             userLabel.leadingAnchor.constraint(equalTo: imageView!.trailingAnchor, constant: 10),
             userLabel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -10),
             // userLabel.trailingAnchor.constraint(equalTo: dateLabel.leadingAnchor, constant: -10),
-            userLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 10)
+            userLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 10),
         ])
         NSLayoutConstraint.activate([
             snippetLabel.topAnchor.constraint(equalTo: userLabel.bottomAnchor, constant: 10),
             snippetLabel.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor, constant: -10),
             snippetLabel.leadingAnchor.constraint(equalTo: imageView!.trailingAnchor, constant: 10),
-            snippetLabel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -10)
+            snippetLabel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -10),
         ])
         activiyIndicator.frame = contentView.bounds
         imageView?.image = UIImage(systemName: "person")!

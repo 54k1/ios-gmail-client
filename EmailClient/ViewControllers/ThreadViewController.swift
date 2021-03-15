@@ -53,7 +53,7 @@ class ThreadViewController: UIViewController {
         subjectHeader.backgroundColor = .white
         NSLayoutConstraint.activate([
             subjectHeader.heightAnchor.constraint(equalToConstant: 70),
-            subjectHeader.widthAnchor.constraint(equalTo: view.widthAnchor)
+            subjectHeader.widthAnchor.constraint(equalTo: view.widthAnchor),
         ])
     }
 }
@@ -100,7 +100,7 @@ extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
     }
 }
 
-protocol ParentTableViewDelegate {
+protocol ParentTableViewDelegate: class {
     func setHeight(to height: CGFloat, at indexPath: IndexPath)
 }
 
@@ -112,7 +112,7 @@ extension ThreadViewController: ParentTableViewDelegate {
     }
 }
 
-protocol PreviewDelegate {
+protocol PreviewDelegate: class {
     func shouldPresent(_ vc: UIViewController, animated: Bool)
 }
 

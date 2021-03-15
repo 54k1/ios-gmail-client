@@ -10,6 +10,8 @@
 		34AF8D36D1FE97C19530A573 /* Pods_EmailClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F82D6980158885214C643315 /* Pods_EmailClient.framework */; };
 		6EB5F73C8DCE3817CC7C8A66 /* Pods_EmailClient_EmailClientUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 411045CFBD6B05899365CED4 /* Pods_EmailClient_EmailClientUITests.framework */; };
 		B00658AC25D15D8400EA3BCA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B00658AB25D15D8400EA3BCA /* GoogleService-Info.plist */; };
+		B0115CE025FF3637008E8C00 /* MenuTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0115CDF25FF3637008E8C00 /* MenuTableViewCell.swift */; };
+		B0115CE525FF47FC008E8C00 /* ComposeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0115CE425FF47FC008E8C00 /* ComposeViewController.swift */; };
 		B011E62E25ECF88B002FDB34 /* FolderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62825ECF88A002FDB34 /* FolderViewController.swift */; };
 		B011E62F25ECF88B002FDB34 /* MessageComposeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62925ECF88A002FDB34 /* MessageComposeViewController.swift */; };
 		B011E63125ECF88B002FDB34 /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B011E62B25ECF88A002FDB34 /* MenuViewController.swift */; };
@@ -68,6 +70,8 @@
 		66B8AF53C7409609D21A5DB2 /* Pods-EmailClient-EmailClientUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EmailClient-EmailClientUITests.debug.xcconfig"; path = "Target Support Files/Pods-EmailClient-EmailClientUITests/Pods-EmailClient-EmailClientUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		9F03F03FD61CF656B5016E9E /* Pods-EmailClient.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EmailClient.debug.xcconfig"; path = "Target Support Files/Pods-EmailClient/Pods-EmailClient.debug.xcconfig"; sourceTree = "<group>"; };
 		B00658AB25D15D8400EA3BCA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		B0115CDF25FF3637008E8C00 /* MenuTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuTableViewCell.swift; sourceTree = "<group>"; };
+		B0115CE425FF47FC008E8C00 /* ComposeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeViewController.swift; sourceTree = "<group>"; };
 		B011E62825ECF88A002FDB34 /* FolderViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FolderViewController.swift; sourceTree = "<group>"; };
 		B011E62925ECF88A002FDB34 /* MessageComposeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageComposeViewController.swift; sourceTree = "<group>"; };
 		B011E62B25ECF88A002FDB34 /* MenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuViewController.swift; sourceTree = "<group>"; };
@@ -149,6 +153,7 @@
 				B011E62D25ECF88B002FDB34 /* ThreadDetailViewController.swift */,
 				B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */,
 				B02ABB6A25F8EE1D000C2B15 /* MessageViewController.xib */,
+				B0115CE425FF47FC008E8C00 /* ComposeViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -168,6 +173,7 @@
 				B04806A525F7AE20005C1725 /* Message */,
 				B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */,
 				B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */,
+				B0115CDF25FF3637008E8C00 /* MenuTableViewCell.swift */,
 			);
 			path = TableViewCells;
 			sourceTree = "<group>";
@@ -557,12 +563,14 @@
 				B0ED900A25FA70C200163189 /* AttachmentCollectionViewCell.swift in Sources */,
 				B0ED8FF125FA442900163189 /* MessageAttachmentsTableViewCell.swift in Sources */,
 				B02ABB9225F9ED87000C2B15 /* MessageBodyTableViewCell.swift in Sources */,
+				B0115CE525FF47FC008E8C00 /* ComposeViewController.swift in Sources */,
 				B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */,
 				B011E63225ECF88B002FDB34 /* LoginViewController.swift in Sources */,
 				B0A1892925F7246F00D3E4CE /* MessageFooterTableViewCell.swift in Sources */,
 				B0C847F425D573C2004A0861 /* UserMessage.swift in Sources */,
 				B024066925DA38BF00884D1E /* MessageTableViewCell.swift in Sources */,
 				B0834B7D25D14D93008E1807 /* AppDelegate.swift in Sources */,
+				B0115CE025FF3637008E8C00 /* MenuTableViewCell.swift in Sources */,
 				B02ABB9A25F9F330000C2B15 /* ThreadViewController.swift in Sources */,
 				B0ED901825FA7B5500163189 /* AttachmentCollectionViewCell.swift in Sources */,
 				B0A1892225F70E4200D3E4CE /* MessageHeaderTableViewCell.swift in Sources */,

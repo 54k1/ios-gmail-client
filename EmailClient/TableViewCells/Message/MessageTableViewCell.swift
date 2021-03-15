@@ -25,8 +25,8 @@ class MessageTableViewCell: UITableViewCell {
     private var htmlString: String!
     private var attachments: [Attachment]!
 
-    var delegate: ParentTableViewDelegate?
-    var previewDelegate: PreviewDelegate?
+    weak var delegate: ParentTableViewDelegate?
+    weak var previewDelegate: PreviewDelegate?
     var indexPath: IndexPath?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -35,7 +35,6 @@ class MessageTableViewCell: UITableViewCell {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.isScrollEnabled = false
-        // tableView.backgroundColor = .systemBlue
         tableView.separatorStyle = .none
     }
 
@@ -56,7 +55,6 @@ extension MessageTableViewCell: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print("MessageCell at \(indexPath)")
         let row = indexPath.row
         switch row {
         case 0:
@@ -105,7 +103,6 @@ extension MessageTableViewCell: UITableViewDelegate, UITableViewDataSource {
 
 extension MessageTableViewCell {
     func configure(with message: UserMessage) {
-        print("configure \(Self.description())")
         self.message = message
         extract(from: message)
         tableView.reloadData()
