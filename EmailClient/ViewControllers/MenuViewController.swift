@@ -8,17 +8,17 @@
 import GoogleSignIn
 import UIKit
 
-enum MenuItem {
-    case label(id: String, name: String)
-    case other(name: String)
+public extension UIImage {
+    convenience init?(color: UIColor, size: CGSize = CGSize(width: 1, height: 1)) {
+        let rect = CGRect(origin: .zero, size: size)
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
+        color.setFill()
+        UIRectFill(rect)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
 
-    var displayName: String {
-        switch self {
-        case let .label(_, name):
-            return name
-        case let .other(name):
-            return name
-        }
+        guard let cgImage = image?.cgImage else { return nil }
+        self.init(cgImage: cgImage)
     }
 }
 
@@ -72,7 +72,21 @@ class MenuViewController: UIViewController {
     static let storyboardID = "MenuViewController"
     static let navigationControllerStoryboardID = "MenuViewNavigationController"
 
-    var menuSections: [[MenuItem]] = [
+    private enum MenuItem {
+        case label(id: String, name: String)
+        case other(name: String)
+
+        var displayName: String {
+            switch self {
+            case let .label(_, name):
+                return name
+            case let .other(name):
+                return name
+            }
+        }
+    }
+
+    private var menuSections: [[MenuItem]] = [
         // System
         [
             .label(id: "INBOX", name: "inbox"),
@@ -85,7 +99,7 @@ class MenuViewController: UIViewController {
         [.other(name: "signout")],
     ]
 
-    var imageForLabelId: [String: UIImage] = [
+    private var imageForLabelId: [String: UIImage] = [
         "INBOX": UIImage(systemName: "envelope")!,
         "SENT": UIImage(systemName: "hand.point.right")!,
         "STARRED": UIImage(systemName: "star")!,
@@ -93,69 +107,63 @@ class MenuViewController: UIViewController {
         "TRASH": UIImage(systemName: "trash")!,
     ]
 
-    var vc: FolderViewController!
-    var uuidOf = [String: UUID]()
-    var labelShouldFullSync = [UUID: Bool]()
-    let systemLabelSection = 0
-    let userLabelSection = 1
+    private var folderViewController = FolderViewController()
+    private var uuidOf = [String: UUID]()
+    private var labelShouldFullSync = [UUID: Bool]()
+    private let systemLabelSection = 0
+    private let userLabelSection = 1
 
-    @IBOutlet var composeButton: UIButton!
-    @IBOutlet var tableView: UITableView!
+    private let tableView: UITableView = {
+        let view = UITableView()
+        view.register(MenuTableViewCell.self, forCellReuseIdentifier: MenuTableViewCell.identifier)
+        view.tableFooterView = UIView()
+        return view
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavigationBar()
+        setupViews()
+        setupLabels()
+    }
+}
 
+extension MenuViewController {
+    private func setupNavigationBar() {
         title = "Menu"
-        // composeButton.addTarget(self, action: #selector(presentComposeVC), for: .touchUpInside)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
+    }
+}
 
-        vc = storyboard?.instantiateViewController(identifier: "folderVC") as? FolderViewController
-        guard vc != nil else {
-            fatalError("Could not isntantiate 'folderVC'")
-        }
+extension MenuViewController {
+    private func setupViews() {
+        setupTableView()
+    }
 
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(MenuTableViewCell.self, forCellReuseIdentifier: MenuTableViewCell.identifier)
+    private func setupTableView() {
+        view.addSubview(tableView)
+        (tableView.delegate, tableView.dataSource) = (self, self)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        Constraints.embed(tableView, in: view)
+    }
+}
 
+extension MenuViewController {
+    private func setupLabels() {
         Model.shared.fetchLabels {
             labelsListResponse in
             for label in labelsListResponse.labels {
-                if case .user = label.type {
-                    self.menuSections[self.userLabelSection].append(.label(id: label.id, name: label.name))
-                    let color = UIColor(hex: label.color!.backgroundColor)!
-                    // label.color?.backgroundColor
-                    self.imageForLabelId[label.id] = UIImage(color: color, size: CGSize(width: 10, height: 10))
+                guard case .user = label.type else {
+                    continue
                 }
+                self.menuSections[self.userLabelSection].append(.label(id: label.id, name: label.name))
+                let color = UIColor(hex: label.color!.backgroundColor)!
+                self.imageForLabelId[label.id] = UIImage(color: color, size: CGSize(width: 10, height: 10))
             }
             DispatchQueue.main.async {
                 self.tableView.reloadData()
             }
         }
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
-        // Segue into inbox automatically
-        // tableView(tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
-        tableView.tableFooterView = UIView()
-    }
-
-    @objc func presentComposeVC() {
-        guard let vc = storyboard?.instantiateViewController(identifier: "messageComposeVC") else {
-            return
-        }
-        present(vc, animated: true)
-    }
-}
-
-public extension UIImage {
-    convenience init?(color: UIColor, size: CGSize = CGSize(width: 1, height: 1)) {
-        let rect = CGRect(origin: .zero, size: size)
-        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
-        color.setFill()
-        UIRectFill(rect)
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        guard let cgImage = image?.cgImage else { return nil }
-        self.init(cgImage: cgImage)
     }
 }
 
@@ -192,8 +200,8 @@ extension MenuViewController: UITableViewDelegate {
         switch item {
         case let .label(id, name):
             print(item)
-            vc.label = (id, name)
-            vc.title = name.capitalized
+            folderViewController.label = (id, name)
+            folderViewController.title = name.capitalized
             if let uuid = uuidOf[id] {
                 // If context already registered, simply change it
                 Model.shared.changeContext(toUUID: uuid)
@@ -202,9 +210,9 @@ extension MenuViewController: UITableViewDelegate {
                 let uuid = Model.shared.registerContext(withLabelIds: [id])
                 uuidOf[id] = uuid
                 Model.shared.changeContext(toUUID: uuid)
-                vc.performInitialFullSync()
+                folderViewController.performInitialFullSync()
             }
-            navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(folderViewController, animated: true)
         case let .other(name):
             switch name {
             case "signout":

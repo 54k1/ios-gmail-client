@@ -9,18 +9,26 @@ import GoogleSignIn
 import UIKit
 
 class FolderViewController: UIViewController {
-    // MARK: Outlets
+    // MARK: SubViews
 
-    @IBOutlet var tableView: UITableView!
+    private let tableView: UITableView = {
+        let view = UITableView()
+        view.tableFooterView = UIView()
+        view.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
 
-    // MARK: Properties
+        let refreshControl = UIRefreshControl()
+        refreshControl.attributedTitle = NSAttributedString(string: "Syncing")
+        refreshControl.addTarget(self, action: #selector(partialSync), for: .valueChanged)
+
+        view.refreshControl = refreshControl
+        return view
+    }()
 
     var label: (id: String, name: String)!
     var threads: [ThreadListResponse.PartThread] {
         Model.shared.threads
     }
 
-    var nextPageToken: String?
     var isFetchingNextBatch = false
     var doneFetching = false
     let batchSize = 10
@@ -30,22 +38,27 @@ class FolderViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        tableView.tableFooterView = UIView()
-        tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
-        tableView.delegate = self
-        tableView.dataSource = self
-        refreshControl.attributedTitle = NSAttributedString(string: "Syncing")
-        refreshControl.addTarget(self, action: #selector(partialSync), for: .valueChanged)
-        tableView.refreshControl = refreshControl
-
-        addLoadingFooter()
-
         title = label.name.capitalized
+        setupViews()
+        addLoadingFooter()
     }
 
     override func viewDidAppear(_: Bool) {
         tableView.reloadData()
+    }
+}
+
+extension FolderViewController {
+    private func setupViews() {
+        setupTableView()
+    }
+
+    private func setupTableView() {
+        view.addSubview(tableView)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        Constraints.embed(tableView, in: view)
+        tableView.delegate = self
+        tableView.dataSource = self
     }
 }
 
@@ -72,19 +85,13 @@ extension FolderViewController: UITableViewDataSource {
 
 extension FolderViewController: UITableViewDelegate {
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // let cell = tableView.cellForRow(at: indexPath) as! ThreadTableViewCell
         let threadId = threads[indexPath.row].id
-        // let vc = storyboard?.instantiateViewController(identifier: "threadDetailVC") as! ThreadDetailViewController
-        // vc.threadId = threadId
         Model.shared.fetchThread(withId: threadId) {
             threadDetail in
             let vc = ThreadViewController()
             vc.configure(with: threadDetail)
             self.navigationController?.pushViewController(vc, animated: true)
         }
-        // let vc = ThreadViewController()
-        // vc.configure(with: threadId!)
-        // navigationController?.pushViewController(vc, animated: true)
     }
 
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
@@ -151,7 +158,7 @@ extension FolderViewController {
         Model.shared.fullSync(batchSize: batchSize, withLabelId: label.id, completionHandler: {
             _ in
             DispatchQueue.main.async {
-                self.tableView?.reloadData()
+                self.tableView.reloadData()
             }
         })
     }

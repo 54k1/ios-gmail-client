@@ -16,7 +16,8 @@ class AttachmentCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.numberOfLines = 0
         return label
-    } ()
+    }()
+
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
@@ -24,14 +25,15 @@ class AttachmentCollectionViewCell: UICollectionViewCell {
         imageView.layer.borderColor = CGColor(red: 0, green: 0, blue: 0, alpha: 0.25)
         imageView.layer.borderWidth = 1
         return imageView
-    } ()
+    }()
+
     private let activityIndicator: UIActivityIndicatorView = {
         let activityIndicator = UIActivityIndicatorView()
         activityIndicator.isHidden = false
         activityIndicator.hidesWhenStopped = true
         activityIndicator.startAnimating()
         return activityIndicator
-    } ()
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -39,7 +41,7 @@ class AttachmentCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(imageView)
         contentView.addSubview(activityIndicator)
     }
-    
+
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")

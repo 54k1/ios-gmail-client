@@ -15,9 +15,9 @@ class MessageBodyTableViewCell: UITableViewCell {
         let view = WKWebView()
         view.scrollView.bounces = false
         return view
-    } ()
+    }()
 
-    weak var delegate: ParentTableViewDelegate?
+    var delegate: ParentTableViewDelegate?
     var indexPath: IndexPath?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

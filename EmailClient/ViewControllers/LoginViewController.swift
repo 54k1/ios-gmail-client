@@ -6,61 +6,72 @@
 //
 
 import GoogleSignIn
+import OSLog
 import UIKit
 
 class LoginViewController: UIViewController {
-    // MARK: Outlets
-
-    @IBOutlet var activityIndicator: UIActivityIndicatorView!
-    @IBOutlet var signInButton: GIDSignInButton!
-
-    var user: GIDGoogleUser!
-
-    @IBOutlet var customSignInButton: UIButton!
+    private let signInButton = GIDSignInButton()
+    private let activityIndicator: UIActivityIndicatorView = {
+        let view = UIActivityIndicatorView()
+        view.hidesWhenStopped = true
+        view.isHidden = true
+        return view
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemPink
-        GIDSignIn.sharedInstance()?.presentingViewController = self
-        GIDSignIn.sharedInstance()?.restorePreviousSignIn()
-        activityIndicator.isHidden = true
+        setupViews()
+        setupConstraints()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(userDidSignInGoogle(_:)),
             name: .signInGoogleCompleted,
             object: nil
         )
-        activityIndicator.hidesWhenStopped = true
+        // setupGIDSignIn()
     }
 
-    override func viewDidAppear(_: Bool) {
-        updateScreen()
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        setupGIDSignIn()
+    }
+}
+
+extension LoginViewController {
+    private func setupViews() {
+        view.backgroundColor = .systemPink
+
+        view.addSubview(signInButton)
+        view.addSubview(activityIndicator)
     }
 
-    func updateScreen() {
-        if let user = GIDSignIn.sharedInstance()?.currentUser {
-            signInButton.isHidden = true
-            activityIndicator.isHidden = false
-            activityIndicator.startAnimating()
-            let vc = storyboard?.instantiateViewController(identifier: "folderVC") as! FolderViewController
-            // navigationController?.pushViewController(vc, animated: true)
-            Model.token = user.authentication.accessToken
-            print(user.authentication!.accessToken!)
-            vc.modalPresentationStyle = .fullScreen
-            vc.modalTransitionStyle = .flipHorizontal
-            // present(vc, animated: true)
+    private func setupConstraints() {
+        signInButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            signInButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            signInButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+        ])
+    }
+}
 
-            //
-            let vc2 = storyboard?.instantiateViewController(withIdentifier: MenuViewController.navigationControllerStoryboardID) as! UIViewController
-            vc2.modalPresentationStyle = .fullScreen
-            present(vc2, animated: true)
-        } else {
-            signInButton.isHidden = false
-            activityIndicator.stopAnimating()
-        }
+extension LoginViewController {
+    private func setupGIDSignIn() {
+        GIDSignIn.sharedInstance()?.presentingViewController = self
+        GIDSignIn.sharedInstance()?.restorePreviousSignIn()
     }
 
     @objc private func userDidSignInGoogle(_: Notification) {
-        updateScreen()
+        guard let user = GIDSignIn.sharedInstance()?.currentUser else {
+            NSLog("User Signed in notification triggered but currentUser is nil")
+            return
+        }
+        let vc = MenuViewController()
+
+        // Set access token in Model
+        Model.token = user.authentication.accessToken
+
+        vc.modalPresentationStyle = .fullScreen
+        navigationController?.pushViewController(vc, animated: true)
+        // present(vc, animated: true)
     }
 }

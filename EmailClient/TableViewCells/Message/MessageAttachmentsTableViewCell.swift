@@ -78,7 +78,7 @@ extension MessageAttachmentsTableViewCell: UICollectionViewDataSource, UICollect
         let attachment = attachments[indexPath.row]
         cell.configure(withName: attachment.filename)
         getPath(for: attachment) {
-            path in
+            _ in
             self.generateThumbnail(for: attachment) {
                 thumbnail in
                 DispatchQueue.main.async {
