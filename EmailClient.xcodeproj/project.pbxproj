@@ -20,7 +20,6 @@
 		B024066925DA38BF00884D1E /* MessageTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024066825DA38BF00884D1E /* MessageTableViewCell.swift */; };
 		B02ABB9225F9ED87000C2B15 /* MessageBodyTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02ABB9125F9ED87000C2B15 /* MessageBodyTableViewCell.swift */; };
 		B02ABB9A25F9F330000C2B15 /* ThreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */; };
-		B041832525EBB0390065E94F /* ThreadDetailTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */; };
 		B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */; };
 		B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */; };
 		B0834B7D25D14D93008E1807 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0834B7C25D14D93008E1807 /* AppDelegate.swift */; };
@@ -74,7 +73,6 @@
 		B024066825DA38BF00884D1E /* MessageTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageTableViewCell.swift; sourceTree = "<group>"; };
 		B02ABB9125F9ED87000C2B15 /* MessageBodyTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBodyTableViewCell.swift; sourceTree = "<group>"; };
 		B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadViewController.swift; sourceTree = "<group>"; };
-		B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadDetailTableViewCell.swift; sourceTree = "<group>"; };
 		B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadTableViewCell.swift; sourceTree = "<group>"; };
 		B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComponentExtractor.swift; sourceTree = "<group>"; };
 		B0834B7925D14D93008E1807 /* EmailClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EmailClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -157,7 +155,6 @@
 			isa = PBXGroup;
 			children = (
 				B04806A525F7AE20005C1725 /* Message */,
-				B041832325EBB0390065E94F /* ThreadDetailTableViewCell.swift */,
 				B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */,
 				B0115CDF25FF3637008E8C00 /* MenuTableViewCell.swift */,
 			);
@@ -552,7 +549,6 @@
 				B0A1892225F70E4200D3E4CE /* MessageHeaderTableViewCell.swift in Sources */,
 				B0BB19B82600CFC7007A56B5 /* Constraints.swift in Sources */,
 				B0834B7F25D14D93008E1807 /* SceneDelegate.swift in Sources */,
-				B041832525EBB0390065E94F /* ThreadDetailTableViewCell.swift in Sources */,
 				B011E63125ECF88B002FDB34 /* MenuViewController.swift in Sources */,
 				B011E62F25ECF88B002FDB34 /* MessageComposeViewController.swift in Sources */,
 				B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */,

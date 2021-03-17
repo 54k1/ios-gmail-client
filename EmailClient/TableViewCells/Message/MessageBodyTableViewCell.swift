@@ -22,8 +22,7 @@ class MessageBodyTableViewCell: UITableViewCell {
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        contentView.addSubview(webView)
-        webView.navigationDelegate = self
+        setupWebView()
     }
 
     @available(*, unavailable)
@@ -31,9 +30,10 @@ class MessageBodyTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        webView.frame = contentView.bounds
+    private func setupWebView() {
+        contentView.addSubview(webView)
+        webView.navigationDelegate = self
+        Constraints.embed(webView, in: contentView)
     }
 }
 

@@ -6,8 +6,11 @@
 //
 
 import UIKit
+import WebKit
 
 class ThreadViewController: UIViewController {
+    // MARK: SubViews
+
     private let tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.register(MessageTableViewCell.self, forCellReuseIdentifier: MessageTableViewCell.identifier)
@@ -29,31 +32,56 @@ class ThreadViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func loadView() {
-        view = tableView
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupViews()
+        // tableView.tableHeaderView = subjectHeader
+    }
+
+//    override func viewDidLayoutSubviews() {
+//        super.viewDidLayoutSubviews()
+//        subjectHeader.translatesAutoresizingMaskIntoConstraints = false
+//        subjectHeader.backgroundColor = .white
+//        NSLayoutConstraint.activate([
+//            subjectHeader.heightAnchor.constraint(equalToConstant: 70),
+//            subjectHeader.widthAnchor.constraint(equalTo: view.widthAnchor),
+//        ])
+//    }
+}
+
+extension ThreadViewController {
+    func setupViews() {
+        view.backgroundColor = .white
+        setupTableView()
+        setupHeaderView()
+        addConstraints()
+    }
+
+    func addConstraints() {
+        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.topAnchor, on: .vertical(.top))
+        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.leadingAnchor, on: .horizontal(.leading))
+        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.trailingAnchor, on: .horizontal(.trailing))
+        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.bottomAnchor, on: .vertical(.bottom))
+    }
+
+    func setupTableView() {
+        view.addSubview(tableView)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.backgroundColor = .white
         tableView.delegate = self
         tableView.dataSource = self
         tableView.tableFooterView = nil
         tableView.tableHeaderView = nil
+        tableView.tableHeaderView = subjectHeader
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    func setupHeaderView() {
+        view.addSubview(subjectHeader)
+        subjectHeader.translatesAutoresizingMaskIntoConstraints = false
         subjectHeader.numberOfLines = 0
         subjectHeader.attributedText = NSAttributedString(string: threadDetail.messages[0].headerValueFor(key: "Subject")!, attributes: [
             .strokeColor: UIColor.black,
             .font: UIFont.boldSystemFont(ofSize: 30),
-        ])
-        tableView.tableHeaderView = subjectHeader
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        subjectHeader.translatesAutoresizingMaskIntoConstraints = false
-        subjectHeader.backgroundColor = .white
-        NSLayoutConstraint.activate([
-            subjectHeader.heightAnchor.constraint(equalToConstant: 70),
-            subjectHeader.widthAnchor.constraint(equalTo: view.widthAnchor),
         ])
     }
 }
@@ -120,4 +148,8 @@ extension ThreadViewController: PreviewDelegate {
     func shouldPresent(_ vc: UIViewController, animated: Bool) {
         present(vc, animated: animated)
     }
+}
+
+extension ThreadViewController: WKNavigationDelegate {
+    func webView(_: WKWebView, didFinish _: WKNavigation!) {}
 }

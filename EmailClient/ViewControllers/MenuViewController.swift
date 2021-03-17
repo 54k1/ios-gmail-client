@@ -138,6 +138,7 @@ extension MenuViewController {
 extension MenuViewController {
     private func setupViews() {
         setupTableView()
+        view.backgroundColor = .white
     }
 
     private func setupTableView() {

@@ -46,11 +46,7 @@ extension LoginViewController {
     }
 
     private func setupConstraints() {
-        signInButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            signInButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
-            signInButton.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
-        ])
+        Constraints.center(signInButton, in: view)
     }
 }
 

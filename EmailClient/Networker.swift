@@ -11,31 +11,22 @@ enum HttpError: Error {
     case badAccess
 }
 
-typealias NetworkerResult<T> = Result<T, HttpError>
+enum NetworkerError: Error {
+    case jsonDecodingError
+    case httpError(HttpError)
+}
+
+typealias NetworkerResult<T> = Result<T, NetworkerError>
 
 class Networker {
-    static func request(_ request: URLRequest, completionHandler: @escaping (NetworkerResult<Data?>) -> Void) {
-        // URLSessionConfiguration.
-        let task = URLSession.shared.dataTask(with: request) {
-            data, _, error in
-            guard case .none = error else {
-                return
-            }
-            guard let data = data else {
-                return
-            }
-            completionHandler(.success(data))
-        }
-        task.resume()
-    }
-
-    func fetch<T: Decodable>(fromURL url: URL, _ completionHandler: @escaping (NetworkerResult<T>) -> Void) {
+    /// Fetch data and decode into object
+    func fetch<T: Decodable>(fromURL url: URL, completionHandler: @escaping (NetworkerResult<T>) -> Void) {
         let request = URLRequest(url: url)
         let task = URLSession.shared.dataTask(with: request) {
             data, _, error in
             if let error = error {
                 NSLog("\(error)")
-                completionHandler(.failure(.badAccess))
+                completionHandler(.failure(.httpError(.badAccess)))
                 return
             }
             do {
@@ -44,36 +35,30 @@ class Networker {
                 DispatchQueue.main.async {
                     completionHandler(.success(json))
                 }
-            } catch let e {
-                print(T.self)
-                print(e)
+            } catch {
+                completionHandler(.failure(.jsonDecodingError))
             }
         }
         task.resume()
     }
 
-    static func fetch<T: Decodable>(fromRequest request: URLRequest, _ completionHandler: @escaping (NetworkerResult<T>) -> Void) {
-        var request = request
+    /// Fetch data and decode into object
+    static func fetch<T: Decodable>(fromRequest request: URLRequest, completionHandler: @escaping (NetworkerResult<T>) -> Void) {
         let task = URLSession.shared.dataTask(with: request) {
-            data, response, error in
+            data, _, error in
             if let error = error {
-                print(error)
-                completionHandler(.failure(.badAccess))
+                completionHandler(.failure(.httpError(.badAccess)))
                 return
             }
             do {
                 let decoder = JSONDecoder()
                 let json = try decoder.decode(T.self, from: data!)
-                print(json)
 
                 DispatchQueue.main.async {
                     completionHandler(.success(json))
                 }
-                // print("Messages: ", list)
-            } catch let e {
-                print(T.self)
-                print(response)
-                print(e)
+            } catch {
+                completionHandler(.failure(.jsonDecodingError))
             }
         }
         task.resume()

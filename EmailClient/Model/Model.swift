@@ -170,17 +170,13 @@ class Model {
             completionHandler(detail)
         } else {
             let url = URL(string: "https://gmail.googleapis.com/gmail/v1/users/me/threads/\(threadId)")!
-            Networker.request(makeRequest(url), completionHandler: {
-                result in
-                guard case let .success(data) = result else {
+            Networker.fetch(fromRequest: makeRequest(url), completionHandler: {
+                (result: NetworkerResult<ThreadDetail>) in
+                guard case let .success(threadDetail) = result else {
                     return
                 }
-                let decoder = JSONDecoder()
-                guard let json = try? decoder.decode(ThreadDetail.self, from: data!) else {
-                    return
-                }
-                self.threadDetailWithId[threadId] = json
-                completionHandler(json)
+                self.threadDetailWithId[threadId] = threadDetail
+                completionHandler(threadDetail)
             })
         }
     }
@@ -197,16 +193,12 @@ class Model {
         } else {
             let url = URL(string: "https://gmail.googleapis.com/gmail/v1/users/me/messages/\(id)")!
             let request = makeRequest(url)
-            Networker.request(request) {
-                result in
-                guard case let .success(data) = result else {
+            Networker.fetch(fromRequest: request) {
+                (result: NetworkerResult<UserMessage>) in
+                guard case let .success(message) = result else {
                     return
                 }
-                let decoder = JSONDecoder()
-                guard let json = try? decoder.decode(UserMessage.self, from: data!) else {
-                    return
-                }
-                completionHandler(json)
+                completionHandler(message)
             }
         }
     }
@@ -220,7 +212,6 @@ class Model {
 
 extension Model {
     func fetchThreadDetail(withId threadId: String, completionHandler: @escaping (ThreadDetail) -> Void) {
-        // Just fetch from network now
         if let threadDetail = threadDetailWithId[threadId] {
             completionHandler(threadDetail)
             return

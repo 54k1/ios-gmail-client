@@ -51,6 +51,7 @@ class FolderViewController: UIViewController {
 extension FolderViewController {
     private func setupViews() {
         setupTableView()
+        view.backgroundColor = .white
     }
 
     private func setupTableView() {
@@ -78,7 +79,11 @@ extension FolderViewController: UITableViewDataSource {
 
         let row = indexPath.row
         let thread = threads[row]
-        cell.configure(with: thread.id)
+        Model.shared.fetchThreadDetail(withId: thread.id, completionHandler: {
+            [weak cell]
+            threadDetail in
+            cell?.configure(with: threadDetail)
+        })
         return cell
     }
 }
