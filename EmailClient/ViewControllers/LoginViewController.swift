@@ -46,7 +46,7 @@ extension LoginViewController {
     }
 
     private func setupConstraints() {
-        Constraints.center(signInButton, in: view)
+        signInButton.center(in: view)
     }
 }
 
@@ -61,13 +61,16 @@ extension LoginViewController {
             NSLog("User Signed in notification triggered but currentUser is nil")
             return
         }
-        let vc = MenuViewController()
+
+        let vc = SplitViewController()
+        // folderViewController.label = (id: "INBOX", name: "inbox")
+        let uuid = Model.shared.registerContext(withLabelIds: ["INBOX"])
+        Model.shared.changeContext(toUUID: uuid)
 
         // Set access token in Model
         Model.token = user.authentication.accessToken
 
         vc.modalPresentationStyle = .fullScreen
-        navigationController?.pushViewController(vc, animated: true)
-        // present(vc, animated: true)
+        present(vc, animated: true)
     }
 }

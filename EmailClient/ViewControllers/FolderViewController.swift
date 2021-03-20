@@ -24,7 +24,8 @@ class FolderViewController: UIViewController {
         return view
     }()
 
-    var label: (id: String, name: String)!
+    weak var threadSelectionDelegate: ThreadSelectionDelegate?
+    var label = (id: "INBOX", name: "inbox")
     var threads: [ThreadListResponse.PartThread] {
         Model.shared.threads
     }
@@ -80,9 +81,9 @@ extension FolderViewController: UITableViewDataSource {
         let row = indexPath.row
         let thread = threads[row]
         Model.shared.fetchThreadDetail(withId: thread.id, completionHandler: {
-            [weak cell]
+            // [weak cell]
             threadDetail in
-            cell?.configure(with: threadDetail)
+            cell.configure(with: threadDetail)
         })
         return cell
     }
@@ -93,9 +94,11 @@ extension FolderViewController: UITableViewDelegate {
         let threadId = threads[indexPath.row].id
         Model.shared.fetchThread(withId: threadId) {
             threadDetail in
-            let vc = ThreadViewController()
-            vc.configure(with: threadDetail)
-            self.navigationController?.pushViewController(vc, animated: true)
+            self.threadSelectionDelegate?.didSelect(threadDetail)
+            // tableView.deselectRow(at: indexPath, animated: true)
+            // let vc = ThreadViewController()
+            // vc.configure(with: threadDetail)
+            // self.navigationController?.pushViewController(vc, animated: true)
         }
     }
 
@@ -111,7 +114,7 @@ extension FolderViewController {
         spinner.center = footer.center
         spinner.startAnimating()
         footer.addSubview(spinner)
-        tableView.tableFooterView = footer
+        // tableView.tableFooterView = footer
         tableView.tableFooterView?.isHidden = true
     }
 }
@@ -166,5 +169,18 @@ extension FolderViewController {
                 self.tableView.reloadData()
             }
         })
+    }
+}
+
+protocol ThreadSelectionDelegate: class {
+    func didSelect(_ threadDetail: ThreadDetail)
+}
+
+extension FolderViewController: LabelSelectionDelegate {
+    func didSelect(label: (id: String, name: String)) {
+        title = label.name
+        self.label = label
+        loadViewIfNeeded()
+        performInitialFullSync()
     }
 }

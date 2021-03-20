@@ -36,6 +36,7 @@
 		B0ED8FF125FA442900163189 /* MessageAttachmentsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ED8FF025FA442900163189 /* MessageAttachmentsTableViewCell.swift */; };
 		B0ED900A25FA70C200163189 /* AttachmentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ED900925FA70C200163189 /* AttachmentCollectionViewCell.swift */; };
 		B0ED901825FA7B5500163189 /* AttachmentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ED901725FA7B5500163189 /* AttachmentCollectionViewCell.swift */; };
+		B0F51B7226039FA200785697 /* SplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F51B7126039FA200785697 /* SplitViewController.swift */; };
 		D5AECE9D13C10ED8F5CA5182 /* Pods_EmailClientTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F8C58EFDEA9FDD4D0CD5E33 /* Pods_EmailClientTests.framework */; };
 /* End PBXBuildFile section */
 
@@ -95,6 +96,7 @@
 		B0ED8FF025FA442900163189 /* MessageAttachmentsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageAttachmentsTableViewCell.swift; sourceTree = "<group>"; };
 		B0ED900925FA70C200163189 /* AttachmentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentCollectionViewCell.swift; sourceTree = "<group>"; };
 		B0ED901725FA7B5500163189 /* AttachmentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentCollectionViewCell.swift; sourceTree = "<group>"; };
+		B0F51B7126039FA200785697 /* SplitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitViewController.swift; sourceTree = "<group>"; };
 		BD13B9A2896D029BEE64B60E /* Pods-EmailClientTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EmailClientTests.release.xcconfig"; path = "Target Support Files/Pods-EmailClientTests/Pods-EmailClientTests.release.xcconfig"; sourceTree = "<group>"; };
 		C1F24DB09AC0A28B1F566B10 /* Pods-EmailClient.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EmailClient.release.xcconfig"; path = "Target Support Files/Pods-EmailClient/Pods-EmailClient.release.xcconfig"; sourceTree = "<group>"; };
 		C37C13FF2B2185BCF1E12D5B /* Pods-EmailClientTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EmailClientTests.debug.xcconfig"; path = "Target Support Files/Pods-EmailClientTests/Pods-EmailClientTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 				B011E62925ECF88A002FDB34 /* MessageComposeViewController.swift */,
 				B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */,
 				B0115CE425FF47FC008E8C00 /* ComposeViewController.swift */,
+				B0F51B7126039FA200785697 /* SplitViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -554,6 +557,7 @@
 				B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */,
 				B011E62E25ECF88B002FDB34 /* FolderViewController.swift in Sources */,
 				B024066425DA372A00884D1E /* Model.swift in Sources */,
+				B0F51B7226039FA200785697 /* SplitViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

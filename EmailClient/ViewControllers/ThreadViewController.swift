@@ -58,10 +58,11 @@ extension ThreadViewController {
     }
 
     func addConstraints() {
-        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.topAnchor, on: .vertical(.top))
-        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.leadingAnchor, on: .horizontal(.leading))
-        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.trailingAnchor, on: .horizontal(.trailing))
-        Constraints.pin(tableView, to: view.safeAreaLayoutGuide.bottomAnchor, on: .vertical(.bottom))
+        tableView.embed(in: view.safeAreaLayoutGuide)
+        // Constraints.pin(tableView, to: view.safeAreaLayoutGuide.topAnchor, on: .vertical(.top))
+        // Constraints.pin(tableView, to: view.safeAreaLayoutGuide.leadingAnchor, on: .horizontal(.leading))
+        // Constraints.pin(tableView, to: view.safeAreaLayoutGuide.trailingAnchor, on: .horizontal(.trailing))
+        // Constraints.pin(tableView, to: view.safeAreaLayoutGuide.bottomAnchor, on: .vertical(.bottom))
     }
 
     func setupTableView() {
@@ -79,16 +80,18 @@ extension ThreadViewController {
         view.addSubview(subjectHeader)
         subjectHeader.translatesAutoresizingMaskIntoConstraints = false
         subjectHeader.numberOfLines = 0
-        subjectHeader.attributedText = NSAttributedString(string: threadDetail.messages[0].headerValueFor(key: "Subject")!, attributes: [
-            .strokeColor: UIColor.black,
-            .font: UIFont.boldSystemFont(ofSize: 30),
-        ])
+        // subjectHeader.attributedText = NSAttributedString(string: threadDetail.messages[0].headerValueFor(key: "Subject")!, attributes: [
+        //    .strokeColor: UIColor.black,
+        //    .font: UIFont.boldSystemFont(ofSize: 30),
+        // ])
     }
 }
 
 extension ThreadViewController {
     func configure(with threadDetail: ThreadDetail) {
         self.threadDetail = threadDetail
+        title = threadDetail.messages[0].snippet
+        tableView.reloadData()
     }
 
     func configure(with threadId: String) {
@@ -104,17 +107,17 @@ extension ThreadViewController {
 
 extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
     func numberOfSections(in _: UITableView) -> Int {
-        threadDetail.messages.count
+        threadDetail?.messages.count ?? 0
     }
 
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        // let count = threadDetail.messages.count
-        // return count
         1
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: MessageTableViewCell.identifier, for: indexPath) as! MessageTableViewCell
+    func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // let cell = tableView.dequeueReusableCell(withIdentifier: MessageTableViewCell.identifier, for: indexPath) as! MessageTableViewCell
+        let cell = MessageTableViewCell()
+        cell.layer.shadowRadius = 40
         cell.previewDelegate = self
         cell.delegate = self
         cell.indexPath = indexPath
@@ -152,4 +155,10 @@ extension ThreadViewController: PreviewDelegate {
 
 extension ThreadViewController: WKNavigationDelegate {
     func webView(_: WKWebView, didFinish _: WKNavigation!) {}
+}
+
+extension ThreadViewController: ThreadSelectionDelegate {
+    func didSelect(_ threadDetail: ThreadDetail) {
+        configure(with: threadDetail)
+    }
 }

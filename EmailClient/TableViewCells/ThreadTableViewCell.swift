@@ -10,6 +10,9 @@ import UIKit
 class ThreadTableViewCell: UITableViewCell {
     static let identifier = "ThreadTableViewCell"
 
+    private let senderLabel = UILabel()
+    private let snippetLabel = UILabel()
+    private let starButton = UIButton()
     private let dateLabel = UILabel()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -23,9 +26,9 @@ class ThreadTableViewCell: UITableViewCell {
     }
 
     func configure(with threadDetail: ThreadDetail) {
-        detailTextLabel?.text = threadDetail.messages[0].snippet
-        textLabel?.text = threadDetail.messages[0].fromName!
-        imageView?.image = UIImage(systemName: "person")
+        textLabel?.text = threadDetail.messages[0].snippet
+        detailTextLabel?.text = threadDetail.messages[0].fromName!
+        imageView!.image = UIImage(systemName: "person")
 
         let dateString = threadDetail.messages[0].headerValueFor(key: "Date")!
         let formatter = DateFormatter()
@@ -36,22 +39,32 @@ class ThreadTableViewCell: UITableViewCell {
         } else {
             formatter.dateFormat = "HH:mm"
         }
-        dateLabel.text = formatter.string(from: date)
+        // dateLabel.text = formatter.string(from: date)
     }
 }
 
 extension ThreadTableViewCell {
-    private func setupDateLabel() {
-        contentView.addSubview(dateLabel)
-        dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            dateLabel.bottomAnchor.constraint(equalTo: detailTextLabel!.topAnchor, constant: 5),
-            dateLabel.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-        ])
+    private func setupViews() {
+        setupLabels()
     }
 
-    private func setupViews() {
-        setupDateLabel()
-        detailTextLabel?.numberOfLines = 3
+    private func setupLabels() {
+        [senderLabel, snippetLabel, dateLabel].forEach {
+            contentView.addSubview($0)
+        }
+//        senderLabel
+//            .alignLeading(to: contentView.safeAreaLayoutGuide.leadingAnchor, withPadding: 45.0)
+//            .alignTop(to: contentView.safeAreaLayoutGuide.bottomAnchor, withPadding: 5.0)
+//
+//        snippetLabel.alignTop(to: senderLabel.bottomAnchor, withPadding: 5.0)
+//        .alignLeading(to: senderLabel.leadingAnchor)
+//            .alignTrailing(to: contentView.safeAreaLayoutGuide.trailingAnchor, withPadding: 10.0)
+//
+//        dateLabel
+//            .alignTop(to: senderLabel.topAnchor)
+//            .alignTrailing(to: contentView.safeAreaLayoutGuide.trailingAnchor, withPadding: -20.0)
+//        NSLayoutConstraint.activate([
+//            dateLabel.topAnchor.constraint(equalTo: senderLabel.bottomAnchor)
+//        ])
     }
 }

@@ -74,3 +74,62 @@ class Constraints {
         }
     }
 }
+
+extension UIView {
+    func center(in superView: UIView) {
+        translatesAutoresizingMaskIntoConstraints = false
+        centerXAnchor.constraint(equalTo: superView.centerXAnchor).isActive = true
+        centerYAnchor.constraint(equalTo: superView.centerYAnchor).isActive = true
+    }
+}
+
+extension UIView {
+    func embed(in layoutGuide: UILayoutGuide, withPadding padding: CGFloat = 0) {
+        applyConstraints([
+            topAnchor.constraint(equalTo: layoutGuide.topAnchor, constant: padding),
+            bottomAnchor.constraint(equalTo: layoutGuide.bottomAnchor, constant: -padding),
+            leadingAnchor.constraint(equalTo: layoutGuide.leadingAnchor, constant: padding),
+            trailingAnchor.constraint(equalTo: layoutGuide.trailingAnchor, constant: -padding),
+        ])
+    }
+
+    func embed(inSafeAreaOf superView: UIView, withPadding padding: CGFloat = 0) {
+        translatesAutoresizingMaskIntoConstraints = false
+        embed(in: superView.safeAreaLayoutGuide, withPadding: padding)
+    }
+}
+
+extension UIView {
+    @discardableResult
+    func alignTop(to anchor: NSLayoutYAxisAnchor, withPadding padding: CGFloat = 0) -> Self {
+        applyConstraint(topAnchor.constraint(equalTo: anchor, constant: padding))
+    }
+
+    @discardableResult
+    func alignTrailing(to anchor: NSLayoutXAxisAnchor, withPadding padding: CGFloat = 0) -> Self {
+        applyConstraint(trailingAnchor.constraint(equalTo: anchor, constant: padding))
+    }
+
+    @discardableResult
+    func alignLeading(to anchor: NSLayoutXAxisAnchor, withPadding padding: CGFloat = 0) -> Self {
+        applyConstraint(leadingAnchor.constraint(equalTo: anchor, constant: padding))
+    }
+}
+
+extension UIView {
+    @discardableResult
+    func applyConstraint(_ constraint: NSLayoutConstraint) -> Self {
+        translatesAutoresizingMaskIntoConstraints = false
+        constraint.isActive = true
+
+        return self
+    }
+
+    @discardableResult
+    func applyConstraints(_ constraints: [NSLayoutConstraint]) -> Self {
+        for constraint in constraints {
+            applyConstraint(constraint)
+        }
+        return self
+    }
+}

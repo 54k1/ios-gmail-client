@@ -72,7 +72,7 @@ class MenuViewController: UIViewController {
     static let storyboardID = "MenuViewController"
     static let navigationControllerStoryboardID = "MenuViewNavigationController"
 
-    private enum MenuItem {
+    enum MenuItem {
         case label(id: String, name: String)
         case other(name: String)
 
@@ -107,6 +107,7 @@ class MenuViewController: UIViewController {
         "TRASH": UIImage(systemName: "trash")!,
     ]
 
+    weak var labelSelectionDelegate: LabelSelectionDelegate?
     private var folderViewController = FolderViewController()
     private var uuidOf = [String: UUID]()
     private var labelShouldFullSync = [UUID: Bool]()
@@ -114,7 +115,7 @@ class MenuViewController: UIViewController {
     private let userLabelSection = 1
 
     private let tableView: UITableView = {
-        let view = UITableView()
+        let view = UITableView(frame: .zero, style: .insetGrouped)
         view.register(MenuTableViewCell.self, forCellReuseIdentifier: MenuTableViewCell.identifier)
         view.tableFooterView = UIView()
         return view
@@ -130,6 +131,7 @@ class MenuViewController: UIViewController {
 
 extension MenuViewController {
     private func setupNavigationBar() {
+        navigationController?.navigationBar.isHidden = false
         title = "Menu"
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
     }
@@ -158,8 +160,10 @@ extension MenuViewController {
                     continue
                 }
                 self.menuSections[self.userLabelSection].append(.label(id: label.id, name: label.name))
-                let color = UIColor(hex: label.color!.backgroundColor)!
-                self.imageForLabelId[label.id] = UIImage(color: color, size: CGSize(width: 10, height: 10))
+                if let labelBackgroundColor = label.color?.backgroundColor {
+                    let color = UIColor(hex: labelBackgroundColor)!
+                    self.imageForLabelId[label.id] = UIImage(color: color, size: CGSize(width: 10, height: 10))
+                }
             }
             DispatchQueue.main.async {
                 self.tableView.reloadData()
@@ -200,9 +204,9 @@ extension MenuViewController: UITableViewDelegate {
         let item = menuSections[indexPath.section][indexPath.row]
         switch item {
         case let .label(id, name):
-            print(item)
-            folderViewController.label = (id, name)
-            folderViewController.title = name.capitalized
+            // print(item)
+            // folderViewController.label = (id, name)
+            // folderViewController.title = name.capitalized
             if let uuid = uuidOf[id] {
                 // If context already registered, simply change it
                 Model.shared.changeContext(toUUID: uuid)
@@ -211,9 +215,10 @@ extension MenuViewController: UITableViewDelegate {
                 let uuid = Model.shared.registerContext(withLabelIds: [id])
                 uuidOf[id] = uuid
                 Model.shared.changeContext(toUUID: uuid)
-                folderViewController.performInitialFullSync()
+                // folderViewController.performInitialFullSync()
             }
-            navigationController?.pushViewController(folderViewController, animated: true)
+            labelSelectionDelegate?.didSelect(label: (id: id, name: name))
+        // navigationController?.pushViewController(folderViewController, animated: true)
         case let .other(name):
             switch name {
             case "signout":
@@ -254,4 +259,8 @@ extension MenuViewController {
         // print("click compose mail")
         navigationController?.pushViewController(ComposeViewController(), animated: true)
     }
+}
+
+protocol LabelSelectionDelegate: class {
+    func didSelect(label: (id: String, name: String))
 }
