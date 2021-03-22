@@ -146,30 +146,30 @@ extension GMailAPIService.Resource {
         var snippet: String
         var historyId: String
         var internalDate: String
-        var payload: MessagePart?
+        var payload: Part?
         var sizeEstimate: Int
         var raw: String?
     }
 }
 
-
 extension GMailAPIService.Resource.Message {
-    class MessagePart: Codable {
+    class Part: Codable {
         var partId: String
         var mimeType: String
         var filename: String
         var headers: [Header]
-        var body: MessagePartBody?
-        var parts: [MessagePart]?
+        var body: Body?
+        var parts: [Part]?
     }
 }
 
-extension GMailAPIService.Resource.Message.MessagePart {
+extension GMailAPIService.Resource.Message.Part {
     class Header: Codable {
         let name: String
         let value: String
     }
-    class MessagePartBody: Codable {
+
+    class Body: Codable {
         let attachmentId: String?
         let size: Int
         let data: String?

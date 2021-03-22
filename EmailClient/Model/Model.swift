@@ -70,6 +70,20 @@ class ThreadDetail: Codable {
         messages.append(message)
         // As a result historyId is set to historyId of the message
         historyId = message.historyId
+        let query = GTLRGmailQuery_UsersThreadsGet.query(withUserId: "me", identifier: "")
+        GTLRGmailQuery.self
+        GTLRDataObject.self
+        GTLRBatchResult.self
+
+        let service = GTLRService()
+        service.shouldFetchNextPages = true
+
+        let ticket = service.executeQuery(query) {
+            _, _, _ in
+            ()
+        }
+
+        ticket.cancel()
     }
 
     func deleteMessage(withId id: String) {

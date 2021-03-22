@@ -85,6 +85,7 @@ extension UIView {
 
 extension UIView {
     func embed(in layoutGuide: UILayoutGuide, withPadding padding: CGFloat = 0) {
+        translatesAutoresizingMaskIntoConstraints = false
         applyConstraints([
             topAnchor.constraint(equalTo: layoutGuide.topAnchor, constant: padding),
             bottomAnchor.constraint(equalTo: layoutGuide.bottomAnchor, constant: -padding),
@@ -131,5 +132,29 @@ extension UIView {
             applyConstraint(constraint)
         }
         return self
+    }
+}
+
+extension UIView {
+    @discardableResult
+    func setConstant(width: CGFloat) -> Self {
+        applyConstraint(widthAnchor.constraint(equalToConstant: width))
+    }
+    
+    @discardableResult
+    func setConstant(height: CGFloat) -> Self {
+        applyConstraint(heightAnchor.constraint(equalToConstant: height))
+    }
+}
+
+extension UIView {
+    @discardableResult
+    func set(widthTo anchor: NSLayoutDimension) -> Self {
+        applyConstraint(widthAnchor.constraint(equalTo: anchor))
+    }
+    
+    @discardableResult
+    func set(heightTo anchor: NSLayoutDimension) -> Self {
+        applyConstraint(heightAnchor.constraint(equalTo: anchor))
     }
 }

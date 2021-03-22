@@ -14,6 +14,9 @@ class ThreadTableViewCell: UITableViewCell {
     private let snippetLabel = UILabel()
     private let starButton = UIButton()
     private let dateLabel = UILabel()
+    let activityIndicator = UIActivityIndicatorView()
+    
+    public var threadId: String?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -41,11 +44,38 @@ class ThreadTableViewCell: UITableViewCell {
         }
         // dateLabel.text = formatter.string(from: date)
     }
+
+    func configure(with thread: GMailAPIService.Resource.Thread) {
+        activityIndicator.stopAnimating()
+        textLabel?.text = thread.messages?[0].snippet
+        detailTextLabel?.text = thread.snippet
+        imageView!.image = UIImage(systemName: "person")
+
+        // let dateString = threadDetail.messages[0].headerValueFor(key: "Date")!
+        // let formatter = DateFormatter()
+        // formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+        // let date = formatter.date(from: dateString)!
+        // if date.distance(to: Date()) > 24 * 60 * 60 {
+        //     formatter.dateFormat = "dd MMM"
+        // } else {
+        //     formatter.dateFormat = "HH:mm"
+        // }
+        // dateLabel.text = formatter.string(from: date)
+    }
 }
 
 extension ThreadTableViewCell {
+    
+    func startLoading() {
+        activityIndicator.startAnimating()
+    }
+    func stopLoading() {
+        
+    }
     private func setupViews() {
         setupLabels()
+        contentView.addSubview(activityIndicator)
+        activityIndicator.center(in: contentView)
     }
 
     private func setupLabels() {

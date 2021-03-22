@@ -10,7 +10,7 @@ import QuickLook
 import UIKit
 
 class AttachmentCollectionViewCell: UICollectionViewCell {
-    static let identifier = "AttachmentCollectionViewCell"
+    static let reuseIdentifier = "AttachmentCollectionViewCell"
 
     private let titleView: UILabel = {
         let label = UILabel()
@@ -39,7 +39,6 @@ class AttachmentCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
         contentView.addSubview(titleView)
         contentView.addSubview(imageView)
-        contentView.addSubview(activityIndicator)
     }
 
     @available(*, unavailable)
@@ -49,18 +48,7 @@ class AttachmentCollectionViewCell: UICollectionViewCell {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        titleView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            imageView.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            imageView.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor),
-        ])
-        NSLayoutConstraint.activate([
-            titleView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
-            titleView.topAnchor.constraint(equalTo: imageView.bottomAnchor),
-        ])
-        activityIndicator.frame = imageView.frame
+        imageView.embed(in: contentView.safeAreaLayoutGuide)
     }
 
     func configure(withName filename: String) {
@@ -69,14 +57,6 @@ class AttachmentCollectionViewCell: UICollectionViewCell {
 
     func configure(withImage image: UIImage) {
         imageView.image = image
-        activityIndicator.stopAnimating()
         imageView.isHidden = false
-    }
-
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        imageView.isHidden = true
-        activityIndicator.isHidden = false
-        activityIndicator.startAnimating()
     }
 }

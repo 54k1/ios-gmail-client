@@ -19,8 +19,10 @@ enum NetworkerError: Error {
 typealias NetworkerResult<T> = Result<T, NetworkerError>
 
 class Networker {
+    typealias Handler<T> = (NetworkerResult<T>) -> Void
+
     /// Fetch data and decode into object
-    func fetch<T: Decodable>(fromURL url: URL, completionHandler: @escaping (NetworkerResult<T>) -> Void) {
+    func fetch<T: Decodable>(fromURL url: URL, completionHandler: @escaping Handler<T>) {
         let request = URLRequest(url: url)
         let task = URLSession.shared.dataTask(with: request) {
             data, _, error in
@@ -32,9 +34,7 @@ class Networker {
             do {
                 let decoder = JSONDecoder()
                 let json = try decoder.decode(T.self, from: data!)
-                DispatchQueue.main.async {
-                    completionHandler(.success(json))
-                }
+                completionHandler(.success(json))
             } catch {
                 completionHandler(.failure(.jsonDecodingError))
             }
@@ -43,9 +43,9 @@ class Networker {
     }
 
     /// Fetch data and decode into object
-    static func fetch<T: Decodable>(fromRequest request: URLRequest, completionHandler: @escaping (NetworkerResult<T>) -> Void) {
+    static func fetch<T: Decodable>(fromRequest request: URLRequest, completionHandler: @escaping Handler<T>) {
         let task = URLSession.shared.dataTask(with: request) {
-            data, _, error in
+            data, response, error in
             if let error = error {
                 completionHandler(.failure(.httpError(.badAccess)))
                 return
@@ -54,10 +54,9 @@ class Networker {
                 let decoder = JSONDecoder()
                 let json = try decoder.decode(T.self, from: data!)
 
-                DispatchQueue.main.async {
-                    completionHandler(.success(json))
-                }
-            } catch {
+                completionHandler(.success(json))
+            } catch let e {
+                let x = String(describing: T.self)
                 completionHandler(.failure(.jsonDecodingError))
             }
         }

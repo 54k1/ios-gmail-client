@@ -25,33 +25,41 @@ class FolderViewController: UIViewController {
     }()
 
     weak var threadSelectionDelegate: ThreadSelectionDelegate?
-    var label = (id: "INBOX", name: "inbox")
-    var threads: [ThreadListResponse.PartThread] {
-        Model.shared.threads
-    }
+    private var label = (id: "INBOX", name: "inbox")
+    private var threads = [GMailAPIService.Resource.Thread]()
+    private let service: CachedGmailAPIService
+    private var latestHistoryId: String?
 
-    var isFetchingNextBatch = false
-    var doneFetching = false
-    let batchSize = 10
-    let shouldFullSync = false
+    private let maxResults = 10
+    let threadsProvider: ThreadsLoader
 
     var refreshControl = UIRefreshControl()
+
+    init(service: CachedGmailAPIService, label: (id: String, name: String)) {
+        self.service = service
+        self.label = label
+        self.threadsProvider = ThreadsLoader(forLabelId: label.id, service: service)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         title = label.name.capitalized
         setupViews()
-        addLoadingFooter()
-    }
 
-    override func viewDidAppear(_: Bool) {
-        tableView.reloadData()
+        loadNextBatch()
     }
 }
 
 extension FolderViewController {
     private func setupViews() {
         setupTableView()
+        setupLoadingFooter()
         view.backgroundColor = .white
     }
 
@@ -60,46 +68,18 @@ extension FolderViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         Constraints.embed(tableView, in: view)
         tableView.delegate = self
-        tableView.dataSource = self
+        tableView.dataSource = threadsProvider
     }
 }
 
-extension FolderViewController: UITableViewDataSource {
-    func numberOfSections(in _: UITableView) -> Int {
-        1
-    }
-
-    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        threads.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ThreadTableViewCell.identifier, for: indexPath) as? ThreadTableViewCell else {
-            return UITableViewCell()
-        }
-
-        let row = indexPath.row
-        let thread = threads[row]
-        Model.shared.fetchThreadDetail(withId: thread.id, completionHandler: {
-            // [weak cell]
-            threadDetail in
-            cell.configure(with: threadDetail)
-        })
-        return cell
-    }
-}
 
 extension FolderViewController: UITableViewDelegate {
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let threadId = threads[indexPath.row].id
-        Model.shared.fetchThread(withId: threadId) {
-            threadDetail in
-            self.threadSelectionDelegate?.didSelect(threadDetail)
-            // tableView.deselectRow(at: indexPath, animated: true)
-            // let vc = ThreadViewController()
-            // vc.configure(with: threadDetail)
-            // self.navigationController?.pushViewController(vc, animated: true)
+        guard let thread = threadsProvider.getThread(atIndexPath: indexPath) else {
+            NSLog("Thread did not load")
+            return
         }
+        threadSelectionDelegate?.didSelect(thread)
     }
 
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
@@ -108,13 +88,22 @@ extension FolderViewController: UITableViewDelegate {
 }
 
 extension FolderViewController {
-    func addLoadingFooter() {
-        let footer = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 100))
+    func setupLoadingFooter() {
+        let footer = UIView()
+        tableView.addSubview(footer)
+        footer.setConstant(height: 100).set(widthTo: tableView.widthAnchor)
         let spinner = UIActivityIndicatorView()
-        spinner.center = footer.center
-        spinner.startAnimating()
         footer.addSubview(spinner)
-        // tableView.tableFooterView = footer
+        spinner.center(in: footer)
+        tableView.tableFooterView = footer
+        spinner.startAnimating()
+        tableView.tableFooterView?.isHidden = true
+    }
+    
+    func startLoadingFooter() {
+        tableView.tableFooterView?.isHidden = false
+    }
+    func stopLoadingFooter() {
         tableView.tableFooterView?.isHidden = true
     }
 }
@@ -122,34 +111,43 @@ extension FolderViewController {
 // Methods related to loading new batch once scrolled to bottom
 extension FolderViewController: UIScrollViewDelegate {
     func loadNextBatch() {
-        if doneFetching {
-            return
-        }
-        isFetchingNextBatch = true
-        tableView.tableFooterView?.isHidden = false
-        Model.shared.fetchNextThreadBatch(withSize: batchSize, withLabelId: label.id, completionHandler: {
-            threadListResponse in
-            self.isFetchingNextBatch = false
-            if threadListResponse.resultSizeEstimate == 0 {
-                self.doneFetching = true
-            }
+        startLoadingFooter()
+        threadsProvider.loadNextBatch() {
             DispatchQueue.main.async {
+                self.stopLoadingFooter()
                 self.tableView.reloadData()
-                self.tableView.isHidden = false
-                self.tableView.tableFooterView?.isHidden = true
             }
-        })
+        }
     }
+//    func loadNextBatch() {
+//        if doneFetching {
+//            return
+//        }
+//        isFetchingNextBatch = true
+//        tableView.tableFooterView?.isHidden = false
+//        Model.shared.fetchNextThreadBatch(withSize: batchSize, withLabelId: label.id, completionHandler: {
+//            threadListResponse in
+//            self.isFetchingNextBatch = false
+//            if threadListResponse.resultSizeEstimate == 0 {
+//                self.doneFetching = true
+//            }
+//            DispatchQueue.main.async {
+//                self.tableView.reloadData()
+//                self.tableView.isHidden = false
+//                self.tableView.tableFooterView?.isHidden = true
+//            }
+//        })
+//    }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard !isFetchingNextBatch else {
-            return
-        }
-        let position = scrollView.contentOffset.y
-        if position > (tableView.contentSize.height - 100 - scrollView.frame.height), !doneFetching {
-            loadNextBatch()
-        }
-    }
+//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//        guard !isFetchingNextBatch else {
+//            return
+//        }
+//        let position = scrollView.contentOffset.y
+//        if position > (tableView.contentSize.height - 100 - scrollView.frame.height), !doneFetching {
+//            loadNextBatch()
+//        }
+//    }
 }
 
 extension FolderViewController {
@@ -162,25 +160,32 @@ extension FolderViewController {
         refreshControl.endRefreshing()
     }
 
-    func performInitialFullSync() {
-        Model.shared.fullSync(batchSize: batchSize, withLabelId: label.id, completionHandler: {
+    func refresh() {
+        service.partialSync(forLabelId: label.id) {
             _ in
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
+            // At the top again
+        }
+    }
+
+    func initialLoad() {
+        service.localThreadsSync(forLabelId: label.id, maxResults: maxResults, completionHandler: {
+            threadListResponse in
+            if threadListResponse == nil {
+                service.listThreads(withLabelId: label.id, withMaxResults: maxResults, completionHandler: {
+                    threadListResponse in
+                    guard let threadListResponse = threadListResponse else {
+                        // Could not fetch
+                        return
+                    }
+                    if let threads = threadListResponse.threads {
+                        self.threads = threads
+                    }
+                })
             }
         })
     }
 }
 
 protocol ThreadSelectionDelegate: class {
-    func didSelect(_ threadDetail: ThreadDetail)
-}
-
-extension FolderViewController: LabelSelectionDelegate {
-    func didSelect(label: (id: String, name: String)) {
-        title = label.name
-        self.label = label
-        loadViewIfNeeded()
-        performInitialFullSync()
-    }
+    func didSelect(_ thread: GMailAPIService.Resource.Thread)
 }

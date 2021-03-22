@@ -108,11 +108,13 @@ class MenuViewController: UIViewController {
     ]
 
     weak var labelSelectionDelegate: LabelSelectionDelegate?
-    private var folderViewController = FolderViewController()
+    // private var folderViewController = FolderViewController()
     private var uuidOf = [String: UUID]()
     private var labelShouldFullSync = [UUID: Bool]()
     private let systemLabelSection = 0
     private let userLabelSection = 1
+
+    private var vcOf = [String: FolderViewController]()
 
     private let tableView: UITableView = {
         let view = UITableView(frame: .zero, style: .insetGrouped)
@@ -120,6 +122,19 @@ class MenuViewController: UIViewController {
         view.tableFooterView = UIView()
         return view
     }()
+
+    let service: CachedGmailAPIService
+    init(service: CachedGmailAPIService) {
+        self.service = service
+        super.init(nibName: nil, bundle: nil)
+
+        setupStaticViewControllers()
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -130,8 +145,22 @@ class MenuViewController: UIViewController {
 }
 
 extension MenuViewController {
+    private func setupStaticViewControllers() {
+        for menuItem in menuSections[systemLabelSection] {
+            if case let .label(id, name) = menuItem {
+                vcOf[id] = FolderViewController(service: service, label: (id: id, name: name))
+            }
+        }
+    }
+
+    var primaryViewController: FolderViewController {
+        vcOf["INBOX"]!
+    }
+}
+
+extension MenuViewController {
     private func setupNavigationBar() {
-        navigationController?.navigationBar.isHidden = false
+        // navigationController?.navigationBar.isHidden = false
         title = "Menu"
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
     }
@@ -153,9 +182,14 @@ extension MenuViewController {
 
 extension MenuViewController {
     private func setupLabels() {
-        Model.shared.fetchLabels {
-            labelsListResponse in
-            for label in labelsListResponse.labels {
+        service.listLabels {
+            labelListResponse in
+            guard let labels = labelListResponse?.labels else {
+                NSLog("Unable to fetch labels")
+                return
+            }
+
+            for label in labels {
                 guard case .user = label.type else {
                     continue
                 }
@@ -169,6 +203,22 @@ extension MenuViewController {
                 self.tableView.reloadData()
             }
         }
+//        Model.shared.fetchLabels {
+//            labelsListResponse in
+//            for label in labelsListResponse.labels {
+//                guard case .user = label.type else {
+//                    continue
+//                }
+//                self.menuSections[self.userLabelSection].append(.label(id: label.id, name: label.name))
+//                if let labelBackgroundColor = label.color?.backgroundColor {
+//                    let color = UIColor(hex: labelBackgroundColor)!
+//                    self.imageForLabelId[label.id] = UIImage(color: color, size: CGSize(width: 10, height: 10))
+//                }
+//            }
+//            DispatchQueue.main.async {
+//                self.tableView.reloadData()
+//            }
+//        }
     }
 }
 
@@ -207,17 +257,21 @@ extension MenuViewController: UITableViewDelegate {
             // print(item)
             // folderViewController.label = (id, name)
             // folderViewController.title = name.capitalized
-            if let uuid = uuidOf[id] {
-                // If context already registered, simply change it
-                Model.shared.changeContext(toUUID: uuid)
-            } else {
-                // Else register new Context and store obtained UUID
-                let uuid = Model.shared.registerContext(withLabelIds: [id])
-                uuidOf[id] = uuid
-                Model.shared.changeContext(toUUID: uuid)
-                // folderViewController.performInitialFullSync()
+            // if let uuid = uuidOf[id] {
+            //     // If context already registered, simply change it
+            //     Model.shared.changeContext(toUUID: uuid)
+            // } else {
+            //     // Else register new Context and store obtained UUID
+            //     let uuid = Model.shared.registerContext(withLabelIds: [id])
+            //     uuidOf[id] = uuid
+            //     Model.shared.changeContext(toUUID: uuid)
+            //     // folderViewController.performInitialFullSync()
+            // }
+            guard let vc = vcOf[id] else {
+                NSLog("ViewController for label(id: \(id), name: \(name)) does not exist")
+                return
             }
-            labelSelectionDelegate?.didSelect(label: (id: id, name: name))
+            labelSelectionDelegate?.didSelect(label: (id: id, name: name), withVC: vc)
         // navigationController?.pushViewController(folderViewController, animated: true)
         case let .other(name):
             switch name {
@@ -262,5 +316,5 @@ extension MenuViewController {
 }
 
 protocol LabelSelectionDelegate: class {
-    func didSelect(label: (id: String, name: String))
+    func didSelect(label: (id: String, name: String), withVC vc: FolderViewController)
 }

@@ -8,9 +8,9 @@
 import UIKit
 
 class SplitViewController: UISplitViewController {
-    init() {
+    init(authorizationValue: String) {
         super.init(style: .tripleColumn)
-        setupViewControllers()
+        setupViewControllers(authorizationValue)
     }
 
     @available(*, unavailable)
@@ -21,13 +21,18 @@ class SplitViewController: UISplitViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+    }
 }
 
 extension SplitViewController {
-    func setupViewControllers() {
-        let menuViewController = MenuViewController()
-        let folderViewController = FolderViewController()
-        let threadViewContoller = ThreadViewController()
+    func setupViewControllers(_ authorizationValue: String) {
+        let service = CachedGmailAPIService(authorizationValue: authorizationValue)
+        let menuViewController = MenuViewController(service: service)
+        let folderViewController = menuViewController.primaryViewController
+        let threadViewContoller = ThreadViewController(service: service)
 
         setViewController(menuViewController, for: .primary)
         setViewController(folderViewController, for: .supplementary)
@@ -39,21 +44,23 @@ extension SplitViewController {
 }
 
 extension SplitViewController: LabelSelectionDelegate {
-    func didSelect(label: (id: String, name: String)) {
-        guard let vc = viewController(for: .supplementary) as? FolderViewController else {
-            return
-        }
-        vc.didSelect(label: label)
+    func didSelect(label _: (id: String, name: String), withVC vc: FolderViewController) {
+        // guard let vc = viewController(for: .supplementary) as? FolderViewController else {
+        //     return
+        // }
+        // vc.didSelect(label: label)
+        vc.threadSelectionDelegate = self
+        setViewController(vc, for: .supplementary)
         show(.supplementary)
     }
 }
 
 extension SplitViewController: ThreadSelectionDelegate {
-    func didSelect(_ threadDetail: ThreadDetail) {
+    func didSelect(_ thread: GMailAPIService.Resource.Thread) {
         guard let vc = viewController(for: .secondary) as? ThreadViewController else {
             return
         }
-        vc.didSelect(threadDetail)
+        vc.didSelect(thread)
         show(.secondary)
     }
 }
