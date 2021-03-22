@@ -137,3 +137,41 @@ class UserMessagePartBody: Codable {
     let size: Int
     let data: String?
 }
+
+extension GMailAPIService.Resource {
+    class Message: Codable {
+        var id: String
+        var threadId: String
+        var labelIds: [String]
+        var snippet: String
+        var historyId: String
+        var internalDate: String
+        var payload: MessagePart?
+        var sizeEstimate: Int
+        var raw: String?
+    }
+}
+
+
+extension GMailAPIService.Resource.Message {
+    class MessagePart: Codable {
+        var partId: String
+        var mimeType: String
+        var filename: String
+        var headers: [Header]
+        var body: MessagePartBody?
+        var parts: [MessagePart]?
+    }
+}
+
+extension GMailAPIService.Resource.Message.MessagePart {
+    class Header: Codable {
+        let name: String
+        let value: String
+    }
+    class MessagePartBody: Codable {
+        let attachmentId: String?
+        let size: Int
+        let data: String?
+    }
+}
