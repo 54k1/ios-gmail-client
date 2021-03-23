@@ -5,29 +5,31 @@
 //  Created by SV on 20/03/21.
 //
 
+import QuickLook
 import UIKit
 import WebKit
-import QuickLook
 
-fileprivate enum Constants {
+private enum Constants {
     static let headerHeight: CGFloat = 50
     static let headerSpacing: CGFloat = 10
     static let attachmentsViewHeight: CGFloat = 150
     static let attachmentHeight: CGFloat = 130
     static let imageSide: CGFloat = 50
+    static let personImage = UIImage(systemName: "person.circle")!
 }
 
 class MessageViewCell: UITableViewCell {
     static let reuseIdentifier = "MessageViewCell"
     static let loadingCellreuseIdentifier = "loadingCell"
 
-    let stackView = UIStackView()
-    let headerView = UIStackView()
-    let labelView = UILabel()
-    let webView = WKWebView()
-    let attachmentsView = UIStackView()
-    let activityIndicator = UIActivityIndicatorView()
-    let collectionView: UICollectionView = {
+    private let stackView = UIStackView()
+    private let headerView = UIStackView()
+    private let labelView = UILabel()
+    private let dateLabel = UILabel()
+    private let webView = WKWebView()
+    private let attachmentsView = UIStackView()
+    private let activityIndicator = UIActivityIndicatorView()
+    private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = CGSize(width: Constants.attachmentHeight, height: Constants.attachmentHeight)
         layout.minimumLineSpacing = 10
@@ -35,17 +37,21 @@ class MessageViewCell: UITableViewCell {
         layout.scrollDirection = .horizontal
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(AttachmentCollectionViewCell.self, forCellWithReuseIdentifier: AttachmentCollectionViewCell.reuseIdentifier)
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: loadingCellreuseIdentifier)
+        collectionView.register(ActivityIndicatorCollectionViewCell.self, forCellWithReuseIdentifier: ActivityIndicatorCollectionViewCell.reuseIdentifier)
         return collectionView
-    } ()
-    
-    var delegate: CollectionViewDelegate?
-    var height: CGFloat = 0.0
-    var hasAttachments = false
-    var attachmentCount = 0
-    var attachments: [Attachment]?
+    }()
 
-    var messageId: String?
+    var delegate: CollectionViewDelegate?
+    public private(set) var height: CGFloat = 0.0
+
+    private var attachmentsMetaData = [MessageComponentExtractor.AttachmentMetaData]()
+    private var hasAttachments: Bool {
+        attachmentsMetaData.count > 0
+    }
+
+    var attachmentsLoader: AttachmentsLoader?
+
+    private var messageId: String?
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -77,7 +83,7 @@ extension MessageViewCell {
     private func setupHeaderView() {
         // Sender Image
         func setupImageView() {
-            let imageView = UIImageView(image: UIImage(systemName: "person.circle")!)
+            let imageView = UIImageView(image: Constants.personImage)
             imageView
                 .setConstant(height: Constants.imageSide)
                 .setConstant(width: Constants.imageSide)
@@ -87,23 +93,23 @@ extension MessageViewCell {
 
         // SenderName Label
         func setupLabelView() {
-            labelView.font = .systemFont(ofSize: 20, weight: .medium)
+            labelView.font = .systemFont(ofSize: 20, weight: .regular)
             headerView.addArrangedSubview(labelView)
         }
-        
+
         headerView.setConstant(height: Constants.headerHeight)
         headerView.spacing = Constants.headerSpacing
-        
+
         setupImageView()
         setupLabelView()
+        headerView.addArrangedSubview(dateLabel)
     }
 
     private func setupAttachmentsView() {
-        
         (collectionView.dataSource, collectionView.delegate) = (self, self)
 
         attachmentsView.addArrangedSubview(collectionView)
-        
+
         attachmentsView.setConstant(height: Constants.attachmentsViewHeight)
         attachmentsView.backgroundColor = .white
         collectionView.backgroundColor = .white
@@ -122,47 +128,50 @@ extension MessageViewCell: WKNavigationDelegate {
 }
 
 extension MessageViewCell {
-    private func prepareToLoadAttachments(_ count: Int) {
-        hasAttachments = true
-        self.attachmentCount = count
+    private func prepareToLoadAttachments() {
         stackView.insertArrangedSubview(attachmentsView, at: 1)
         collectionView.reloadData()
     }
 
-    func configure(from: String) {
-        labelView.text = from
+    func configure(with result: MessageComponentExtractor.MessageResult) {
+        guard case let .success(extractedMessage) = result else {
+            // Show Error
+            return
+        }
+        webView.loadHTMLString(extractedMessage.html, baseURL: nil)
+        labelView.text = extractedMessage.from?.name
+        dateLabel.text = extractedMessage.date
+        attachmentsMetaData = extractedMessage.attachments
+        if attachmentsMetaData.count > 0 {
+            prepareToLoadAttachments()
+        }
     }
-    
-    func configure(withHTML html: String, attachmentCount: Int) {
-        webView.loadHTMLString(html, baseURL: nil)
-        guard attachmentCount > 0 else {return}
-        prepareToLoadAttachments(attachmentCount)
-    }
-    
-    func set(attachments: [Attachment]) {
-        self.attachments = attachments
+}
+
+extension MessageViewCell {
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        attachmentsMetaData.removeAll()
+        stackView.removeArrangedSubview(attachmentsView)
     }
 }
 
 extension MessageViewCell: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
-        attachmentCount
+        attachmentsMetaData.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard attachments != nil else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.loadingCellreuseIdentifier, for: indexPath)
-            let activityIndicator = UIActivityIndicatorView()
-            cell.addSubview(activityIndicator)
-            activityIndicator.center(in: cell)
-            activityIndicator.startAnimating()
-            return cell
-        }
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AttachmentCollectionViewCell.reuseIdentifier, for: indexPath) as? AttachmentCollectionViewCell else {
-            fatalError("Could not dequee AttachmentCollectionViewCell")
+            fatalError("\(AttachmentCollectionViewCell.reuseIdentifier) has not been registered or internal error")
         }
-        guard let attachment = attachments?[indexPath.row] else {
-            fatalError("Requested unknown attachment")
+        let attachmentMetaData = attachmentsMetaData[indexPath.row]
+        guard let attachment = attachmentsLoader?.loadCachedAttachment(withMetaData: attachmentMetaData) else {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ActivityIndicatorCollectionViewCell.reuseIdentifier, for: indexPath) as? ActivityIndicatorCollectionViewCell else {
+                fatalError("\(ActivityIndicatorCollectionViewCell.reuseIdentifier) has not been registered or internal error")
+            }
+            cell.startSpinning()
+            return cell
         }
         if let image = attachment.thumbnail {
             cell.configure(withImage: image)
@@ -171,68 +180,12 @@ extension MessageViewCell: UICollectionViewDataSource, UICollectionViewDelegate 
         }
         return cell
     }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        delegate?.didSelectItemAt(indexPath, attachments: self.attachments)
+
+    func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        delegate?.didSelectItemAt(indexPath, attachmentsMetaData: attachmentsMetaData)
     }
 }
 
 protocol CollectionViewDelegate {
-    func didSelectItemAt(_ indexPath: IndexPath, attachments: [Attachment]?)
-}
-
-/// Extracting necessary information from Message
-extension GMailAPIService.Resource.Message {
-    func headerValueFor(key: String) -> String? {
-        if let payload = self.payload {
-            for header in payload.headers {
-                if header.name == key {
-                    return header.value
-                }
-            }
-        }
-        return nil
-    }
-
-    var fromName: String? {
-        guard let from = headerValueFor(key: "From") else {
-            return nil
-        }
-        return Self.extractName(from)
-    }
-
-    var fromEmail: String? {
-        guard let from = headerValueFor(key: "From") else {
-            return nil
-        }
-        return Self.extractEmail(from)
-    }
-
-    private static func extractName(_ string: String) -> String {
-        if let index = string.firstIndex(of: "<") {
-            return String(string.prefix(upTo: index))
-        }
-        return string
-    }
-
-    private static func extractEmail(_ string: String) -> String {
-        if let index = string.firstIndex(of: "<") {
-            return String(string.suffix(from: index))
-        }
-        return string
-    }
-
-    var toName: String? {
-        guard let to = headerValueFor(key: "To") else {
-            return nil
-        }
-        return Self.extractName(to)
-    }
-
-    var toEmail: String? {
-        guard let to = headerValueFor(key: "To") else {
-            return nil
-        }
-        return Self.extractEmail(to)
-    }
+    func didSelectItemAt(_ indexPath: IndexPath, attachmentsMetaData: [MessageComponentExtractor.AttachmentMetaData]?)
 }

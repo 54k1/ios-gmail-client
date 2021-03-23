@@ -140,7 +140,7 @@ extension UIView {
     func setConstant(width: CGFloat) -> Self {
         applyConstraint(widthAnchor.constraint(equalToConstant: width))
     }
-    
+
     @discardableResult
     func setConstant(height: CGFloat) -> Self {
         applyConstraint(heightAnchor.constraint(equalToConstant: height))
@@ -152,7 +152,7 @@ extension UIView {
     func set(widthTo anchor: NSLayoutDimension) -> Self {
         applyConstraint(widthAnchor.constraint(equalTo: anchor))
     }
-    
+
     @discardableResult
     func set(heightTo anchor: NSLayoutDimension) -> Self {
         applyConstraint(heightAnchor.constraint(equalTo: anchor))

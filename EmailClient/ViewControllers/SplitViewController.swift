@@ -8,9 +8,11 @@
 import UIKit
 
 class SplitViewController: UISplitViewController {
+    let service: CachedGmailAPIService
     init(authorizationValue: String) {
+        service = CachedGmailAPIService(authorizationValue: authorizationValue)
         super.init(style: .tripleColumn)
-        setupViewControllers(authorizationValue)
+        setupViewControllers()
     }
 
     @available(*, unavailable)
@@ -21,22 +23,21 @@ class SplitViewController: UISplitViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
     }
 }
 
 extension SplitViewController {
-    func setupViewControllers(_ authorizationValue: String) {
-        let service = CachedGmailAPIService(authorizationValue: authorizationValue)
+    func setupViewControllers() {
         let menuViewController = MenuViewController(service: service)
         let folderViewController = menuViewController.primaryViewController
-        let threadViewContoller = ThreadViewController(service: service)
+        let threadViewController = ThreadViewController(service: service)
 
         setViewController(menuViewController, for: .primary)
         setViewController(folderViewController, for: .supplementary)
-        setViewController(threadViewContoller, for: .secondary)
+        setViewController(threadViewController, for: .secondary)
 
         menuViewController.labelSelectionDelegate = self
         folderViewController.threadSelectionDelegate = self

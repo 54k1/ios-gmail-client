@@ -57,7 +57,7 @@ extension CachedGmailAPIService {
     func getFromCache(threadWithId threadId: String) -> GMailAPIService.Resource.Thread? {
         threadsCache.object(forKey: threadId as NSString)
     }
-    
+
     func get(threadWithId threadId: String, completionHandler: @escaping (GMailAPIService.Resource.Thread?) -> Void) {
         if let thread = threadsCache.object(forKey: threadId as NSString) {
             completionHandler(thread)
@@ -81,7 +81,7 @@ extension CachedGmailAPIService {
     func get(messageWithId messageId: String, completionHandler: @escaping (GMailAPIService.Resource.Message?) -> Void) {
         let path: GMailAPIService.Method.Path = .messages(.get(id: messageId))
         let method = GMailAPIService.Method(pathParameters: path, queryParameters: nil)
-    
+
         service.executeMethod(method, completionHandler: {
             (message: GMailAPIService.Resource.Message?) in
             guard let message = message else {
@@ -92,10 +92,38 @@ extension CachedGmailAPIService {
         })
     }
 }
+
 // MARK: Fetch Attachements
 
 extension CachedGmailAPIService {
-    func get(_ attachments: [MessageComponentExtractor.Attachment], forMessageId messageId: String, completionHandler: @escaping ([Attachment]?) -> Void) {
+    func getAttachment(withMetaData attachmentMetaData: MessageComponentExtractor.AttachmentMetaData, completionHandler: @escaping (Attachment?) -> Void) {
+        let (messageId, attachmentId) = (attachmentMetaData.messageId, attachmentMetaData.id)
+        let key = messageId + attachmentId as NSString
+
+        let cachedItem = attachmentsCache.object(forKey: key)
+        guard cachedItem == nil else {
+            completionHandler(cachedItem)
+            return
+        }
+
+        let path: GMailAPIService.Method.Path = .messages(.attachments(messageId: messageId, attachmentId: attachmentId))
+        let method = GMailAPIService.Method(pathParameters: path, queryParameters: nil)
+        service.executeMethod(method, completionHandler: {
+            (body: GMailAPIService.Resource.Message.Part.Body?) in
+            guard let body = body else {
+                completionHandler(nil)
+                return
+            }
+            let decoded = GTLRDecodeWebSafeBase64(body.data)
+            let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(attachmentMetaData.filename)
+            try? decoded!.write(to: path)
+            let attachment = Attachment(withName: attachmentMetaData.filename, withURL: path)
+            self.attachmentsCache.setObject(attachment, forKey: key)
+            completionHandler(attachment)
+        })
+    }
+
+    func get(_ attachments: [MessageComponentExtractor.AttachmentMetaData], forMessageId messageId: String, completionHandler: @escaping ([Attachment]?) -> Void) {
         var atts = [Attachment]()
         let queue = DispatchQueue(label: "\(messageId).attachments", attributes: .concurrent)
         let group = DispatchGroup()
@@ -226,8 +254,7 @@ extension CachedGmailAPIService {
     }
 
     func fetchNextBatch(forLabelId labelId: String, withMaxResults maxResults: Int, completionHandler: @escaping ThreadListResponseHandler) {
-        
-        self.listThreads(withLabelId: labelId, withMaxResults: maxResults, withPageToken: nil, completionHandler: {
+        listThreads(withLabelId: labelId, withMaxResults: maxResults, withPageToken: nil, completionHandler: {
             threadListResponse in
             guard let response = threadListResponse else {
                 return
@@ -235,10 +262,9 @@ extension CachedGmailAPIService {
             completionHandler(response)
         })
     }
-    
-    func fetchNextDetailBatch(forLabelId labelId: String, withMaxResults maxResults: Int, completionHandler: @escaping (([GMailAPIService.Resource.Thread])?) -> ()) {
-        
-        self.listThreads(withLabelId: labelId, withMaxResults: maxResults, withPageToken: nil, completionHandler: {
+
+    func fetchNextDetailBatch(forLabelId labelId: String, withMaxResults maxResults: Int, completionHandler: @escaping (([GMailAPIService.Resource.Thread])?) -> Void) {
+        listThreads(withLabelId: labelId, withMaxResults: maxResults, withPageToken: nil, completionHandler: {
             threadListResponse in
             guard let threads = threadListResponse?.threads else {
                 return
@@ -249,7 +275,7 @@ extension CachedGmailAPIService {
                 queries.append(query)
             }
 
-            var threadDetails = [GMailAPIService.Resource.Thread] ()
+            var threadDetails = [GMailAPIService.Resource.Thread]()
             let group = DispatchGroup()
             for thread in threads {
                 group.enter()
@@ -266,8 +292,7 @@ extension CachedGmailAPIService {
             }
             // threadListResponse?.threads = threadDetails
             group.notify(qos: .background, flags: .noQoS, queue: .global(), execute: {
-                
-            completionHandler(threadDetails)
+                completionHandler(threadDetails)
             })
         })
     }

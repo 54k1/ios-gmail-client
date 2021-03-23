@@ -10,16 +10,11 @@ import UIKit
 class ThreadTableViewCell: UITableViewCell {
     static let identifier = "ThreadTableViewCell"
 
-    private let senderLabel = UILabel()
-    private let snippetLabel = UILabel()
-    private let starButton = UIButton()
+    private let activityIndicator = UIActivityIndicatorView()
     private let dateLabel = UILabel()
-    let activityIndicator = UIActivityIndicatorView()
-    
-    public var threadId: String?
 
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(style _: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
         setupViews()
     }
 
@@ -27,74 +22,29 @@ class ThreadTableViewCell: UITableViewCell {
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    func configure(with threadDetail: ThreadDetail) {
-        textLabel?.text = threadDetail.messages[0].snippet
-        detailTextLabel?.text = threadDetail.messages[0].fromName!
-        imageView!.image = UIImage(systemName: "person")
-
-        let dateString = threadDetail.messages[0].headerValueFor(key: "Date")!
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
-        let date = formatter.date(from: dateString)!
-        if date.distance(to: Date()) > 24 * 60 * 60 {
-            formatter.dateFormat = "dd MMM"
-        } else {
-            formatter.dateFormat = "HH:mm"
-        }
-        // dateLabel.text = formatter.string(from: date)
-    }
-
-    func configure(with thread: GMailAPIService.Resource.Thread) {
-        activityIndicator.stopAnimating()
-        textLabel?.text = thread.messages?[0].snippet
-        detailTextLabel?.text = thread.snippet
-        imageView!.image = UIImage(systemName: "person")
-
-        // let dateString = threadDetail.messages[0].headerValueFor(key: "Date")!
-        // let formatter = DateFormatter()
-        // formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
-        // let date = formatter.date(from: dateString)!
-        // if date.distance(to: Date()) > 24 * 60 * 60 {
-        //     formatter.dateFormat = "dd MMM"
-        // } else {
-        //     formatter.dateFormat = "HH:mm"
-        // }
-        // dateLabel.text = formatter.string(from: date)
-    }
 }
 
 extension ThreadTableViewCell {
-    
+    func configure(with thread: GMailAPIService.Resource.Thread) {
+        activityIndicator.stopAnimating()
+        textLabel?.text = thread.messages?[0].fromName
+        detailTextLabel?.text = thread.messages?[0].snippet
+        imageView?.image = UIImage(systemName: "person.circle")
+        dateLabel.text = thread.messages?[0].date
+    }
+
     func startLoading() {
         activityIndicator.startAnimating()
     }
-    func stopLoading() {
-        
-    }
+
     private func setupViews() {
-        setupLabels()
         contentView.addSubview(activityIndicator)
         activityIndicator.center(in: contentView)
-    }
 
-    private func setupLabels() {
-        [senderLabel, snippetLabel, dateLabel].forEach {
-            contentView.addSubview($0)
-        }
-//        senderLabel
-//            .alignLeading(to: contentView.safeAreaLayoutGuide.leadingAnchor, withPadding: 45.0)
-//            .alignTop(to: contentView.safeAreaLayoutGuide.bottomAnchor, withPadding: 5.0)
-//
-//        snippetLabel.alignTop(to: senderLabel.bottomAnchor, withPadding: 5.0)
-//        .alignLeading(to: senderLabel.leadingAnchor)
-//            .alignTrailing(to: contentView.safeAreaLayoutGuide.trailingAnchor, withPadding: 10.0)
-//
-//        dateLabel
-//            .alignTop(to: senderLabel.topAnchor)
-//            .alignTrailing(to: contentView.safeAreaLayoutGuide.trailingAnchor, withPadding: -20.0)
-//        NSLayoutConstraint.activate([
-//            dateLabel.topAnchor.constraint(equalTo: senderLabel.bottomAnchor)
-//        ])
+        contentView.addSubview(dateLabel)
+        dateLabel
+            .alignTrailing(to: contentView.safeAreaLayoutGuide.trailingAnchor, withPadding: -20.0)
+            .alignTop(to: textLabel?.topAnchor ?? contentView.topAnchor)
+            .font = detailTextLabel?.font
     }
 }

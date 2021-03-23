@@ -38,7 +38,7 @@ class FolderViewController: UIViewController {
     init(service: CachedGmailAPIService, label: (id: String, name: String)) {
         self.service = service
         self.label = label
-        self.threadsProvider = ThreadsLoader(forLabelId: label.id, service: service)
+        threadsProvider = ThreadsLoader(forLabelId: label.id, service: service)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -72,7 +72,6 @@ extension FolderViewController {
     }
 }
 
-
 extension FolderViewController: UITableViewDelegate {
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let thread = threadsProvider.getThread(atIndexPath: indexPath) else {
@@ -83,7 +82,7 @@ extension FolderViewController: UITableViewDelegate {
     }
 
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
-        return 105
+        return 80
     }
 }
 
@@ -99,10 +98,11 @@ extension FolderViewController {
         spinner.startAnimating()
         tableView.tableFooterView?.isHidden = true
     }
-    
+
     func startLoadingFooter() {
         tableView.tableFooterView?.isHidden = false
     }
+
     func stopLoadingFooter() {
         tableView.tableFooterView?.isHidden = true
     }
@@ -112,13 +112,14 @@ extension FolderViewController {
 extension FolderViewController: UIScrollViewDelegate {
     func loadNextBatch() {
         startLoadingFooter()
-        threadsProvider.loadNextBatch() {
+        threadsProvider.loadNextBatch {
             DispatchQueue.main.async {
                 self.stopLoadingFooter()
                 self.tableView.reloadData()
             }
         }
     }
+
 //    func loadNextBatch() {
 //        if doneFetching {
 //            return

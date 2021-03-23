@@ -9,15 +9,19 @@ import Foundation
 import GoogleAPIClientForREST
 
 class MessageComponentExtractor {
+    typealias MessageResult = Result<Message, ExtractionError>
     enum ExtractionError: String, Error {
         case payloadNotPresent
         case bodyNotPresent
         case badBody
         case unexpectedComponent
+        case badMime
+        case htmlNotPresent
     }
 
-    struct Attachment {
+    struct AttachmentMetaData {
         let id: String
+        let messageId: String
         var filename: String
     }
 
@@ -27,25 +31,35 @@ class MessageComponentExtractor {
 
     struct Mixed {
         let alternative: Alternative
-        let attachments: [Attachment]
+        let attachments: [AttachmentMetaData]
     }
 
     struct Content {
         let mimeType: String
         let data: String // Decoded data
     }
+
+    struct Message {
+        struct User {
+            let name: String
+            let email: String
+        }
+
+        let from: User?
+        let to: User?
+        let date: String?
+        let html: String
+        let attachments: [AttachmentMetaData]
+    }
 }
 
 extension MessageComponentExtractor {
-    typealias Handler = (String, [Attachment]?) -> Void
-    func extract(from message: GMailAPIService.Resource.Message, completionHandler: Handler) {
-        guard case let .success(component) = extract(message.payload!) else {
-            // TODO: Render error popup
-            print("failure")
-            return
+    func extract(from message: GMailAPIService.Resource.Message) -> Result<Message, ExtractionError> {
+        guard let payload = message.payload, case let .success(component) = extract(payload, messageId: message.id) else {
+            return .failure(.badBody)
         }
 
-        var attachments: [Attachment]?
+        var attachments = [AttachmentMetaData]()
         var alternative: Alternative!
         var htmlContent: Content!
         if let mixed = component as? Mixed {
@@ -59,7 +73,7 @@ extension MessageComponentExtractor {
             htmlContent = content
         } else {
             NSLog("Cant interpret mime")
-            return
+            return .failure(.badMime)
         }
 
         if htmlContent == nil {
@@ -68,31 +82,39 @@ extension MessageComponentExtractor {
                 content.mimeType == "text/html"
             }) else {
                 // Expect htmlContent to be present
-                print("no html")
-                return
+                NSLog("HTML not present")
+                return .failure(.htmlNotPresent)
             }
             htmlContent = content
         }
 
         let htmlString = "<html><head><meta charset='utf8'><meta name = 'viewport' content = 'width=device-width'></head>" + htmlContent.data + "</html>"
 
-        completionHandler(htmlString, attachments)
+        var fromUser, toUser: Message.User?
+        if let fromName = message.fromName, let fromEmail = message.fromEmail {
+            fromUser = Message.User(name: fromName, email: fromEmail)
+        }
+        if let toName = message.toName, let toEmail = message.toEmail {
+            toUser = Message.User(name: toName, email: toEmail)
+        }
+
+        return .success(Message(from: fromUser, to: toUser, date: message.date, html: htmlString, attachments: attachments))
     }
 
-    private func extract(_ part: GMailAPIService.Resource.Message.Part) -> Result<Any, ExtractionError> {
+    private func extract(_ part: GMailAPIService.Resource.Message.Part, messageId: String) -> Result<Any, ExtractionError> {
         switch part.mimeType {
         case "multipart/mixed":
             var alternative: Alternative?
-            var attachments = [Attachment]()
+            var attachments = [AttachmentMetaData]()
             for part in part.parts! {
-                let result = extract(part)
+                let result = extract(part, messageId: messageId)
                 guard case let .success(component) = result else {
                     return result
                 }
 
                 if let alt = component as? Alternative {
                     alternative = alt
-                } else if let attachment = component as? Attachment {
+                } else if let attachment = component as? AttachmentMetaData {
                     attachments.append(attachment)
                 } else {
                     return .failure(.unexpectedComponent)
@@ -102,7 +124,7 @@ extension MessageComponentExtractor {
         case "multipart/alternative":
             var contents = [Content]()
             for part in part.parts! {
-                let result = extract(part)
+                let result = extract(part, messageId: messageId)
                 guard case let .success(component) = result else {
                     return result
                 }
@@ -122,7 +144,7 @@ extension MessageComponentExtractor {
             }
             if let attachmentId = body.attachmentId {
                 // Some attachment
-                return .success(Attachment(id: attachmentId, filename: part.filename))
+                return .success(AttachmentMetaData(id: attachmentId, messageId: messageId, filename: part.filename))
             } else if let data = body.data {
                 let decodedData = GTLRDecodeWebSafeBase64(data)!
                 let stringData = String(data: decodedData, encoding: .utf8)!
@@ -133,5 +155,78 @@ extension MessageComponentExtractor {
                 return .failure(.badBody)
             }
         }
+    }
+}
+
+/// Extracting necessary information from Message
+extension GMailAPIService.Resource.Message {
+    func headerValueFor(key: String) -> String? {
+        if let payload = self.payload {
+            for header in payload.headers {
+                if header.name == key {
+                    return header.value
+                }
+            }
+        }
+        return nil
+    }
+
+    var fromName: String? {
+        guard let from = headerValueFor(key: "From") else {
+            return nil
+        }
+        return Self.extractName(from)
+    }
+
+    var fromEmail: String? {
+        guard let from = headerValueFor(key: "From") else {
+            return nil
+        }
+        return Self.extractEmail(from)
+    }
+
+    private static func extractName(_ string: String) -> String {
+        if let index = string.firstIndex(of: "<") {
+            return String(string.prefix(upTo: index))
+        }
+        return string
+    }
+
+    private static func extractEmail(_ string: String) -> String {
+        if let index = string.firstIndex(of: "<") {
+            return String(string.suffix(from: index))
+        }
+        return string
+    }
+
+    var toName: String? {
+        guard let to = headerValueFor(key: "To") else {
+            return nil
+        }
+        return Self.extractName(to)
+    }
+
+    var toEmail: String? {
+        guard let to = headerValueFor(key: "To") else {
+            return nil
+        }
+        return Self.extractEmail(to)
+    }
+
+    var date: String? {
+        guard let dateString = headerValueFor(key: "Date") else {
+            return nil
+        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+        guard let date = formatter.date(from: dateString) else {
+            return nil
+        }
+        if date.distance(to: Date()) > 24 * 60 * 60 {
+            formatter.dateFormat = "dd MMM"
+        } else {
+            formatter.dateFormat = "HH:mm"
+        }
+        return formatter.string(from: date)
     }
 }

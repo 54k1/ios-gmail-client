@@ -11,14 +11,14 @@ import QuickLook
 class Attachment: NSObject {
     let url: URL
     let name: String
-    let thumbnail: UIImage?
-    
+    var thumbnail: UIImage?
+
     init(withName name: String, withURL url: URL) {
-        self.thumbnail = nil
+        thumbnail = nil
         self.url = url
         self.name = name
         super.init()
-        self.generateThumbnail(completionHandler: {_ in})
+        generateThumbnail(completionHandler: { _ in })
     }
 }
 
@@ -35,8 +35,8 @@ extension Attachment {
             return
         }
         let thumbnailSize = CGSize(width: 200, height: 200)
-        let request = QLThumbnailGenerator.Request (fileAt: url, size: thumbnailSize, scale: 1.0, representationTypes: .all)
-        
+        let request = QLThumbnailGenerator.Request(fileAt: url, size: thumbnailSize, scale: 1.0, representationTypes: .all)
+
         QLThumbnailGenerator.shared.generateBestRepresentation(for: request, completion: {
             rep, err in
             guard err == nil else {
@@ -48,6 +48,7 @@ extension Attachment {
                 completionHandler(nil)
                 return
             }
+            self.thumbnail = rep.uiImage
             completionHandler(rep.uiImage)
         })
     }

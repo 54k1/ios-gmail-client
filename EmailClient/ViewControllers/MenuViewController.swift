@@ -175,8 +175,7 @@ extension MenuViewController {
     private func setupTableView() {
         view.addSubview(tableView)
         (tableView.delegate, tableView.dataSource) = (self, self)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        Constraints.embed(tableView, in: view)
+        tableView.embed(inSafeAreaOf: view)
     }
 }
 

@@ -24,6 +24,7 @@
 		B024066425DA372A00884D1E /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024066325DA372A00884D1E /* Model.swift */; };
 		B029EF1C26072338004043BF /* Label.swift in Sources */ = {isa = PBXBuildFile; fileRef = B029EF1B26072338004043BF /* Label.swift */; };
 		B02ABB9A25F9F330000C2B15 /* ThreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */; };
+		B02F9F8F2609809000319909 /* ActivityIndicatorCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02F9F8E2609809000319909 /* ActivityIndicatorCollectionViewCell.swift */; };
 		B04497DE26086CDC00CEF71A /* Attachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497DD26086CDC00CEF71A /* Attachment.swift */; };
 		B04497E3260872E700CEF71A /* FileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497E2260872E700CEF71A /* FileViewController.swift */; };
 		B04497EE2608BB9900CEF71A /* ThreadsLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497ED2608BB9900CEF71A /* ThreadsLoader.swift */; };
@@ -83,6 +84,7 @@
 		B024066325DA372A00884D1E /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		B029EF1B26072338004043BF /* Label.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Label.swift; sourceTree = "<group>"; };
 		B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadViewController.swift; sourceTree = "<group>"; };
+		B02F9F8E2609809000319909 /* ActivityIndicatorCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicatorCollectionViewCell.swift; sourceTree = "<group>"; };
 		B04497DD26086CDC00CEF71A /* Attachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Attachment.swift; sourceTree = "<group>"; };
 		B04497E2260872E700CEF71A /* FileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewController.swift; sourceTree = "<group>"; };
 		B04497ED2608BB9900CEF71A /* ThreadsLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadsLoader.swift; sourceTree = "<group>"; };
@@ -238,6 +240,7 @@
 				B011E62725ECF874002FDB34 /* ViewControllers */,
 				B0ED901725FA7B5500163189 /* AttachmentCollectionViewCell.swift */,
 				B04497DD26086CDC00CEF71A /* Attachment.swift */,
+				B02F9F8E2609809000319909 /* ActivityIndicatorCollectionViewCell.swift */,
 			);
 			path = EmailClient;
 			sourceTree = "<group>";
@@ -558,6 +561,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B02F9F8F2609809000319909 /* ActivityIndicatorCollectionViewCell.swift in Sources */,
 				B0C847EC25D4D060004A0861 /* Networker.swift in Sources */,
 				B0ED900A25FA70C200163189 /* AttachmentCollectionViewCell.swift in Sources */,
 				B04497DE26086CDC00CEF71A /* Attachment.swift in Sources */,

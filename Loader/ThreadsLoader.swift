@@ -13,7 +13,7 @@ class ThreadsLoader: NSObject {
     private let service: CachedGmailAPIService
     private let labelId: String
     private let maxResults = 10
-    
+
     init(forLabelId labelId: String, service: CachedGmailAPIService) {
         self.service = service
         self.labelId = labelId
@@ -27,10 +27,10 @@ extension ThreadsLoader {
 }
 
 extension ThreadsLoader: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         threads.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ThreadTableViewCell.identifier, for: indexPath) as? ThreadTableViewCell else {
             return UITableViewCell()
@@ -38,12 +38,12 @@ extension ThreadsLoader: UITableViewDataSource {
 
         let row = indexPath.row
         let thread = threads[row]
-        
+
         if let messages = thread.messages {
             cell.configure(with: thread)
             return cell
         }
-        
+
         cell.startLoading()
         service.get(threadWithId: thread.id, completionHandler: {
             threadDetail in
@@ -52,7 +52,7 @@ extension ThreadsLoader: UITableViewDataSource {
             }
             self.threads[row] = thread
             DispatchQueue.main.async {
-                tableView.reloadRows(at: [indexPath], with: .automatic)
+                tableView.reloadRows(at: [indexPath], with: .fade)
             }
         })
         return cell
@@ -60,7 +60,7 @@ extension ThreadsLoader: UITableViewDataSource {
 }
 
 extension ThreadsLoader {
-    typealias Handler = () -> ()
+    typealias Handler = () -> Void
     func loadNextBatch(completionHandler: @escaping Handler) {
         service.fetchNextBatch(forLabelId: labelId, withMaxResults: maxResults, completionHandler: {
             threadListResponse in

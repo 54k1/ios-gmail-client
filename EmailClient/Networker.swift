@@ -45,7 +45,7 @@ class Networker {
     /// Fetch data and decode into object
     static func fetch<T: Decodable>(fromRequest request: URLRequest, completionHandler: @escaping Handler<T>) {
         let task = URLSession.shared.dataTask(with: request) {
-            data, response, error in
+            data, _, error in
             if let error = error {
                 completionHandler(.failure(.httpError(.badAccess)))
                 return

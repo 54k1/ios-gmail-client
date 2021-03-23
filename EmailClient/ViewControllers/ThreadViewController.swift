@@ -13,10 +13,9 @@ class ThreadViewController: UIViewController {
     // MARK: SubViews
 
     private let tableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .insetGrouped)
+        let tableView = UITableView(frame: .zero, style: .plain)
         tableView.rowHeight = 100
         tableView.estimatedRowHeight = 500
-        // tableView.register(MessageTableViewCell.self, forCellReuseIdentifier: MessageTableViewCell.identifier)
         tableView.register(MessageViewCell.self, forCellReuseIdentifier: MessageViewCell.reuseIdentifier)
         return tableView
     }()
@@ -24,12 +23,14 @@ class ThreadViewController: UIViewController {
     private let subjectHeader = UILabel()
     private let unselectedIndicatorLabel = UILabel()
 
-    private var threadId: String!
-    private var thread: GMailAPIService.Resource.Thread!
+    private var threadId: String?
+    private var thread: GMailAPIService.Resource.Thread?
     private var heightForMessageWithId = [String: CGFloat]()
     private let extractor = MessageComponentExtractor()
     private let service: CachedGmailAPIService
     private let attachmentsLoader: AttachmentsLoader
+    private var selectedMessageIds = Set<String>()
+    private var extractedMessages = [MessageComponentExtractor.Message]()
 
     init(service: CachedGmailAPIService) {
         self.service = service
@@ -46,42 +47,34 @@ class ThreadViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
-        // tableView.tableHeaderView = subjectHeader
     }
 }
 
 extension ThreadViewController {
     func setupViews() {
         view.backgroundColor = .white
-        setupTableView()
         setupHeaderView()
+        setupTableView()
         setupEmptyView()
-        addConstraints()
-    }
-
-    func addConstraints() {
-        tableView.embed(in: view.safeAreaLayoutGuide)
     }
 
     func setupTableView() {
         view.addSubview(tableView)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        // tableView.backgroundColor = .white
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.tableFooterView = nil
-        tableView.tableHeaderView = nil
+        tableView.tableFooterView = UIView()
         tableView.tableHeaderView = subjectHeader
+        tableView.embed(in: view.safeAreaLayoutGuide)
     }
 
     func setupHeaderView() {
         view.addSubview(subjectHeader)
-        subjectHeader.translatesAutoresizingMaskIntoConstraints = false
         subjectHeader.numberOfLines = 0
-        // subjectHeader.attributedText = NSAttributedString(string: threadDetail.messages[0].headerValueFor(key: "Subject")!, attributes: [
-        //    .strokeColor: UIColor.black,
-        //    .font: UIFont.boldSystemFont(ofSize: 30),
-        // ])
+        subjectHeader
+            .alignLeading(to: view.safeAreaLayoutGuide.leadingAnchor, withPadding: 20)
+            .alignTrailing(to: view.safeAreaLayoutGuide.trailingAnchor, withPadding: -20)
+            .setConstant(height: 100)
+        subjectHeader.font = .systemFont(ofSize: 20, weight: .semibold)
     }
 
     private func setupEmptyView() {
@@ -94,67 +87,76 @@ extension ThreadViewController {
 extension ThreadViewController {
     func configure(with thread: GMailAPIService.Resource.Thread) {
         self.thread = thread
-        // Fetch attachments too
-        unselectedIndicatorLabel.isHidden = true
         title = thread.messages?.first?.snippet
+        subjectHeader.text = thread.messages?.first?.headerValueFor(key: "Subject")
+        guard let messages = thread.messages else {
+            NSLog("No messages")
+            return
+        }
+        extractedMessages.removeAll()
+        for message in messages {
+            let result = extractor.extract(from: message)
+            guard case let .success(success) = result else {
+                return
+            }
+            extractedMessages.append(success)
+            for attachmentMetaData in success.attachments {
+                attachmentsLoader.loadAttachment(withMetaData: attachmentMetaData, completionHandler: {
+                    [weak self]
+                    _ in
+                    DispatchQueue.main.async {
+                        self?.tableView.reloadData()
+                    }
+                })
+            }
+        }
+        unselectedIndicatorLabel.isHidden = true
         tableView.reloadData()
     }
 }
 
 extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
     func numberOfSections(in _: UITableView) -> Int {
-        thread?.messages?.count ?? 0
-    }
-
-    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+        // thread?.messages?.count ?? 0
         1
     }
 
-    func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let message = thread.messages?[indexPath.section] else {
-            fatalError("Message for indexPath: \(indexPath) not available")
-        }
-        let cell = MessageViewCell()
-        cell.delegate = self
-        cell.messageId = message.id
-        cell.configure(from: message.fromName!)
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+        thread?.messages?.count ?? 0
+    }
 
-        extractor.extract(from: message) {
-            [weak cell]
-            htmlString, attachments in
-            guard let cell = cell else {
-                return
-            }
-            DispatchQueue.main.async {
-                cell.configure(withHTML: htmlString, attachmentCount: attachments?.count ?? 0)
-                guard let attachments = attachments else {return}
-                self.attachmentsLoader.loadAttachments(attachments, forMessageWithId: message.id, completionHandler: {
-                    attachments in
-                    cell.attachments = attachments
-                })
-            }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: MessageViewCell.reuseIdentifier, for: indexPath) as? MessageViewCell else {
+            fatalError("\(MessageViewCell.reuseIdentifier) for indexPath: \(indexPath) not available")
         }
+
+        cell.delegate = self
+        cell.attachmentsLoader = attachmentsLoader
+        cell.configure(with: .success(extractedMessages[indexPath.row]))
 
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let messageId = thread.messages![indexPath.row].id
-        guard heightForMessageWithId[messageId] == nil, let cell = tableView.cellForRow(at: indexPath) as? MessageViewCell else {
-            if heightForMessageWithId[messageId] != nil {
-                NSLog("cellForRow(at:) returned nil")
-            }
+        let messageId = thread!.messages![indexOfThread(withIndexPath: indexPath)].id
+        guard let cell = tableView.cellForRow(at: indexPath) as? MessageViewCell else {
+            NSLog("cellForRow(at:) returned nil")
             return
         }
         heightForMessageWithId[messageId] = cell.height
+        if selectedMessageIds.contains(messageId) {
+            selectedMessageIds.remove(messageId)
+        } else {
+            selectedMessageIds.insert(messageId)
+        }
         tableView.beginUpdates()
         tableView.endUpdates()
     }
 
     func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let messageId = thread.messages![indexPath.row].id
-        if let height = heightForMessageWithId[messageId] {
+        let messageId = thread!.messages![indexOfThread(withIndexPath: indexPath)].id
+        if selectedMessageIds.contains(messageId), let height = heightForMessageWithId[messageId] {
             return height
         }
         return UITableView.automaticDimension
@@ -162,6 +164,10 @@ extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_: UITableView, heightForHeaderInSection _: Int) -> CGFloat {
         10
+    }
+
+    private func indexOfThread(withIndexPath indexPath: IndexPath) -> Int {
+        indexPath.row
     }
 }
 
@@ -172,9 +178,8 @@ extension ThreadViewController: ThreadSelectionDelegate {
 }
 
 extension ThreadViewController: CollectionViewDelegate {
-    func didSelectItemAt(_ indexPath: IndexPath, attachments: [Attachment]?) {
-        
-        let previewController = FileViewController(attachments: attachments!)
+    func didSelectItemAt(_ indexPath: IndexPath, attachmentsMetaData: [MessageComponentExtractor.AttachmentMetaData]?) {
+        let previewController = FileViewController(loader: attachmentsLoader, attachments: attachmentsMetaData!)
         previewController.currentPreviewItemIndex = indexPath.row
         navigationController?.pushViewController(previewController, animated: true)
     }
