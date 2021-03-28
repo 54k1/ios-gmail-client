@@ -16,7 +16,6 @@ extension MessageMO {
     func configure(with message: GMailAPIService.Resource.Message, context: NSManagedObjectContext) {
         id = message.id
         snippet = message.snippet
-        internalDate = Date()
         fromName = message.fromName
         fromEmail = message.fromEmail!
         subject = message.headerValueFor(key: "Subject") ?? "Subject"

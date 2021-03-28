@@ -25,19 +25,26 @@ class ThreadTableViewCell: UITableViewCell {
 }
 
 extension ThreadTableViewCell {
-    func configure(with thread: GMailAPIService.Resource.Thread) {
-        activityIndicator.stopAnimating()
-        textLabel?.text = thread.messages?[0].fromName
-        detailTextLabel?.text = thread.messages?[0].snippet
-        imageView?.image = UIImage(systemName: "person.circle")
-        dateLabel.text = thread.messages?[0].dateString
-    }
-
     func configure(with threadVM: ViewModel.Thread) {
         detailTextLabel?.text = threadVM.messages.first?.snippet
         textLabel?.text = threadVM.messages.first?.from.name
         imageView?.image = UIImage(systemName: "person.circle")
-        dateLabel.text = threadVM.messages.first?.dateString
+        if let date = threadVM.messages.first?.date {
+            dateLabel.text = dateString(from: date)
+        } else {
+            dateLabel.text = "<<DateError>>"
+        }
+    }
+
+    private func dateString(from date: Date) -> String? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+        if date.distance(to: Date()) > 24 * 60 * 60 {
+            formatter.dateFormat = "dd MMM"
+        } else {
+            formatter.dateFormat = "HH:mm"
+        }
+        return formatter.string(from: date)
     }
 
     func startLoading() {

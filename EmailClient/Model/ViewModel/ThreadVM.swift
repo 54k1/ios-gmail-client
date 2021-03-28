@@ -9,11 +9,12 @@ import Foundation
 
 extension ViewModel {
     class Thread {
-        init(from threadMO: ThreadMO) {
-            messages = threadMO.messages?.compactMap {
+        convenience init(from threadMO: ThreadMO) {
+            let messages = threadMO.messages?.compactMap {
                 Message(from: $0 as! MessageMO)
             } ?? []
-            date = Date()
+            let date = messages.first?.date ?? Date()
+            self.init(messages: messages, date: date)
         }
 
         init(messages: [ViewModel.Message], date: Date) {

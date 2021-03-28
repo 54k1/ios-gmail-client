@@ -150,7 +150,18 @@ extension MessageViewCell {
     func configure(with messageVM: ViewModel.Message) {
         webView.loadHTMLString(messageVM.html, baseURL: nil)
         labelView.text = messageVM.from.name
-        dateLabel.text = messageVM.dateString
+        dateLabel.text = dateString(from: messageVM.date)
+    }
+
+    private func dateString(from date: Date) -> String? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+        if date.distance(to: Date()) > 24 * 60 * 60 {
+            formatter.dateFormat = "dd MMM"
+        } else {
+            formatter.dateFormat = "HH:mm"
+        }
+        return formatter.string(from: date)
     }
 }
 

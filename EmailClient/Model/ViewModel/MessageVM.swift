@@ -36,9 +36,3 @@ extension ViewModel {
         let id: String
     }
 }
-
-extension ViewModel.Message {
-    var dateString: String? {
-        "Date"
-    }
-}
