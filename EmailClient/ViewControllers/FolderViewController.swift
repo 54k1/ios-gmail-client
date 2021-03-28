@@ -11,34 +11,22 @@ import UIKit
 class FolderViewController: UIViewController {
     // MARK: SubViews
 
-    private let tableView: UITableView = {
-        let view = UITableView()
-        view.tableFooterView = UIView()
-        view.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
-
-        let refreshControl = UIRefreshControl()
-        refreshControl.attributedTitle = NSAttributedString(string: "Syncing")
-        refreshControl.addTarget(self, action: #selector(partialSync), for: .valueChanged)
-
-        view.refreshControl = refreshControl
-        return view
-    }()
+    private let tableView = UITableView()
+    private var refreshControl = UIRefreshControl()
 
     weak var threadSelectionDelegate: ThreadSelectionDelegate?
-    private var label = (id: "INBOX", name: "inbox")
-    private var threads = [GMailAPIService.Resource.Thread]()
+    private var label: (id: String, name: String)
     private let service: CachedGmailAPIService
     private var latestHistoryId: String?
 
     private let maxResults = 10
-    let threadsProvider: ThreadsLoader
-
-    var refreshControl = UIRefreshControl()
+    private let threadsProvider: ThreadsLoader
 
     init(service: CachedGmailAPIService, label: (id: String, name: String)) {
         self.service = service
         self.label = label
         threadsProvider = ThreadsLoader(forLabelId: label.id, service: service)
+        threadsProvider.table = tableView
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -50,25 +38,46 @@ class FolderViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = label.name.capitalized
-        setupViews()
 
-        loadNextBatch()
+        setupViews()
+        // threadsProvider.initialLoad()
+        threadsProvider.initialLoad()
     }
 }
 
 extension FolderViewController {
     private func setupViews() {
         setupTableView()
+        setupRefreshControl()
         setupLoadingFooter()
         view.backgroundColor = .white
     }
 
+    private func setupRefreshControl() {
+        refreshControl.addTarget(self, action: #selector(partialSync), for: .valueChanged)
+    }
+
     private func setupTableView() {
         view.addSubview(tableView)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        Constraints.embed(tableView, in: view)
+        tableView.embed(in: view.safeAreaLayoutGuide)
+        tableView.tableFooterView = UIView()
+        tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
         tableView.dataSource = threadsProvider
+
+        tableView.refreshControl = refreshControl
+    }
+
+    private func setupLoadingFooter() {
+        let footer = UIView()
+        tableView.addSubview(footer)
+        footer.setConstant(height: 100).set(widthTo: tableView.widthAnchor)
+        let spinner = UIActivityIndicatorView()
+        footer.addSubview(spinner)
+        spinner.center(in: footer)
+        tableView.tableFooterView = footer
+        spinner.startAnimating()
+        tableView.tableFooterView?.isHidden = true
     }
 }
 
@@ -87,18 +96,6 @@ extension FolderViewController: UITableViewDelegate {
 }
 
 extension FolderViewController {
-    func setupLoadingFooter() {
-        let footer = UIView()
-        tableView.addSubview(footer)
-        footer.setConstant(height: 100).set(widthTo: tableView.widthAnchor)
-        let spinner = UIActivityIndicatorView()
-        footer.addSubview(spinner)
-        spinner.center(in: footer)
-        tableView.tableFooterView = footer
-        spinner.startAnimating()
-        tableView.tableFooterView?.isHidden = true
-    }
-
     func startLoadingFooter() {
         tableView.tableFooterView?.isHidden = false
     }
@@ -108,16 +105,9 @@ extension FolderViewController {
     }
 }
 
-// Methods related to loading new batch once scrolled to bottom
-extension FolderViewController: UIScrollViewDelegate {
+extension FolderViewController {
     func loadNextBatch() {
         startLoadingFooter()
-        threadsProvider.loadNextBatch {
-            DispatchQueue.main.async {
-                self.stopLoadingFooter()
-                self.tableView.reloadData()
-            }
-        }
     }
 
 //    func loadNextBatch() {
@@ -153,40 +143,21 @@ extension FolderViewController: UIScrollViewDelegate {
 
 extension FolderViewController {
     @objc func partialSync() {
-        Model.shared.partialSync(withLabelId: label.id) {
+        threadsProvider.partialSync {
+            [weak self] in
             DispatchQueue.main.async {
-                self.tableView.reloadData()
+                self?.tableView.reloadData()
+                self?.refreshControl.endRefreshing()
+            }
+        } onFailure: {
+            DispatchQueue.main.async {
+                [weak self] in
+                self?.refreshControl.endRefreshing()
             }
         }
-        refreshControl.endRefreshing()
-    }
-
-    func refresh() {
-        service.partialSync(forLabelId: label.id) {
-            _ in
-            // At the top again
-        }
-    }
-
-    func initialLoad() {
-        service.localThreadsSync(forLabelId: label.id, maxResults: maxResults, completionHandler: {
-            threadListResponse in
-            if threadListResponse == nil {
-                service.listThreads(withLabelId: label.id, withMaxResults: maxResults, completionHandler: {
-                    threadListResponse in
-                    guard let threadListResponse = threadListResponse else {
-                        // Could not fetch
-                        return
-                    }
-                    if let threads = threadListResponse.threads {
-                        self.threads = threads
-                    }
-                })
-            }
-        })
     }
 }
 
 protocol ThreadSelectionDelegate: class {
-    func didSelect(_ thread: GMailAPIService.Resource.Thread)
+    func didSelect(_ thread: ViewModel.Thread)
 }

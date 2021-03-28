@@ -158,3 +158,15 @@ extension UIView {
         applyConstraint(heightAnchor.constraint(equalTo: anchor))
     }
 }
+
+extension UIView {
+    @discardableResult
+    func alignCenterY(to anchor: NSLayoutYAxisAnchor, withPadding padding: CGFloat = 0) -> Self {
+        applyConstraint(centerYAnchor.constraint(equalTo: anchor, constant: padding))
+    }
+
+    @discardableResult
+    func alignCenterX(to anchor: NSLayoutXAxisAnchor, withPadding padding: CGFloat = 0) -> Self {
+        applyConstraint(centerXAnchor.constraint(equalTo: anchor, constant: padding))
+    }
+}

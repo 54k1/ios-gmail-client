@@ -21,16 +21,30 @@
 		B01CC08A2605A5270050A157 /* History.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01CC0892605A5270050A157 /* History.swift */; };
 		B01CC0972605D2520050A157 /* CachedGMailAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01CC0962605D2520050A157 /* CachedGMailAPIService.swift */; };
 		B01CC09C260628B70050A157 /* MessageViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01CC09B260628B70050A157 /* MessageViewCell.swift */; };
-		B024066425DA372A00884D1E /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = B024066325DA372A00884D1E /* Model.swift */; };
+		B025A71D260F5D2900E2C771 /* Thread+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A71B260F5D2900E2C771 /* Thread+CoreDataClass.swift */; };
+		B025A71E260F5D2900E2C771 /* Thread+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A71C260F5D2900E2C771 /* Thread+CoreDataProperties.swift */; };
+		B025A726260F7D2F00E2C771 /* Label+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A722260F7D2F00E2C771 /* Label+CoreDataClass.swift */; };
+		B025A727260F7D2F00E2C771 /* Label+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A723260F7D2F00E2C771 /* Label+CoreDataProperties.swift */; };
+		B025A728260F7D2F00E2C771 /* Message+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A724260F7D2F00E2C771 /* Message+CoreDataClass.swift */; };
+		B025A729260F7D2F00E2C771 /* Message+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A725260F7D2F00E2C771 /* Message+CoreDataProperties.swift */; };
+		B025A739260F7FC100E2C771 /* MessageAttachment+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A737260F7FC100E2C771 /* MessageAttachment+CoreDataClass.swift */; };
+		B025A73A260F7FC100E2C771 /* MessageAttachment+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B025A738260F7FC100E2C771 /* MessageAttachment+CoreDataProperties.swift */; };
 		B029EF1C26072338004043BF /* Label.swift in Sources */ = {isa = PBXBuildFile; fileRef = B029EF1B26072338004043BF /* Label.swift */; };
 		B02ABB9A25F9F330000C2B15 /* ThreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */; };
 		B02F9F8F2609809000319909 /* ActivityIndicatorCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02F9F8E2609809000319909 /* ActivityIndicatorCollectionViewCell.swift */; };
+		B034C40B260D7B78002731D0 /* ThreadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B034C40A260D7B78002731D0 /* ThreadService.swift */; };
+		B034C410260D8232002731D0 /* DBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B034C40F260D8232002731D0 /* DBService.swift */; };
+		B034C418260D8339002731D0 /* MessageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B034C417260D8339002731D0 /* MessageService.swift */; };
 		B04497DE26086CDC00CEF71A /* Attachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497DD26086CDC00CEF71A /* Attachment.swift */; };
 		B04497E3260872E700CEF71A /* FileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497E2260872E700CEF71A /* FileViewController.swift */; };
 		B04497EE2608BB9900CEF71A /* ThreadsLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497ED2608BB9900CEF71A /* ThreadsLoader.swift */; };
 		B04497F62608EC5700CEF71A /* AttachmentsLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497F52608EC5700CEF71A /* AttachmentsLoader.swift */; };
 		B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */; };
 		B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */; };
+		B07D68AE261022E100314FE3 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07D68AD261022E100314FE3 /* ViewModel.swift */; };
+		B07D68B62610230100314FE3 /* ThreadVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07D68B52610230100314FE3 /* ThreadVM.swift */; };
+		B07D68BE2610236800314FE3 /* MessageVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07D68BD2610236800314FE3 /* MessageVM.swift */; };
+		B07D68FE261073AD00314FE3 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = B07D68FC261073AD00314FE3 /* Model.xcdatamodeld */; };
 		B0834B7D25D14D93008E1807 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0834B7C25D14D93008E1807 /* AppDelegate.swift */; };
 		B0834B7F25D14D93008E1807 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0834B7E25D14D93008E1807 /* SceneDelegate.swift */; };
 		B0834B8625D14D94008E1807 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0834B8525D14D94008E1807 /* Assets.xcassets */; };
@@ -41,7 +55,6 @@
 		B0C847EC25D4D060004A0861 /* Networker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C847EB25D4D060004A0861 /* Networker.swift */; };
 		B0C847F425D573C2004A0861 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C847F325D573C2004A0861 /* Message.swift */; };
 		B0ED900A25FA70C200163189 /* AttachmentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ED900925FA70C200163189 /* AttachmentCollectionViewCell.swift */; };
-		B0ED901825FA7B5500163189 /* AttachmentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ED901725FA7B5500163189 /* AttachmentCollectionViewCell.swift */; };
 		B0F51B7226039FA200785697 /* SplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F51B7126039FA200785697 /* SplitViewController.swift */; };
 		D5AECE9D13C10ED8F5CA5182 /* Pods_EmailClientTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F8C58EFDEA9FDD4D0CD5E33 /* Pods_EmailClientTests.framework */; };
 /* End PBXBuildFile section */
@@ -81,16 +94,30 @@
 		B01CC0892605A5270050A157 /* History.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = History.swift; sourceTree = "<group>"; };
 		B01CC0962605D2520050A157 /* CachedGMailAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedGMailAPIService.swift; sourceTree = "<group>"; };
 		B01CC09B260628B70050A157 /* MessageViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewCell.swift; sourceTree = "<group>"; };
-		B024066325DA372A00884D1E /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		B025A71B260F5D2900E2C771 /* Thread+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Thread+CoreDataClass.swift"; path = "/Users/sv/Documents/Dev/EmailClient/EmailClient/Model/CoreData/Thread+CoreDataClass.swift"; sourceTree = "<absolute>"; };
+		B025A71C260F5D2900E2C771 /* Thread+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Thread+CoreDataProperties.swift"; path = "/Users/sv/Documents/Dev/EmailClient/EmailClient/Model/CoreData/Thread+CoreDataProperties.swift"; sourceTree = "<absolute>"; };
+		B025A722260F7D2F00E2C771 /* Label+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Label+CoreDataClass.swift"; sourceTree = "<group>"; };
+		B025A723260F7D2F00E2C771 /* Label+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Label+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		B025A724260F7D2F00E2C771 /* Message+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Message+CoreDataClass.swift"; sourceTree = "<group>"; };
+		B025A725260F7D2F00E2C771 /* Message+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Message+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		B025A737260F7FC100E2C771 /* MessageAttachment+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageAttachment+CoreDataClass.swift"; sourceTree = "<group>"; };
+		B025A738260F7FC100E2C771 /* MessageAttachment+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MessageAttachment+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		B029EF1B26072338004043BF /* Label.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Label.swift; sourceTree = "<group>"; };
 		B02ABB9925F9F330000C2B15 /* ThreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadViewController.swift; sourceTree = "<group>"; };
 		B02F9F8E2609809000319909 /* ActivityIndicatorCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicatorCollectionViewCell.swift; sourceTree = "<group>"; };
+		B034C40A260D7B78002731D0 /* ThreadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadService.swift; sourceTree = "<group>"; };
+		B034C40F260D8232002731D0 /* DBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBService.swift; sourceTree = "<group>"; };
+		B034C417260D8339002731D0 /* MessageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageService.swift; sourceTree = "<group>"; };
 		B04497DD26086CDC00CEF71A /* Attachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Attachment.swift; sourceTree = "<group>"; };
 		B04497E2260872E700CEF71A /* FileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewController.swift; sourceTree = "<group>"; };
 		B04497ED2608BB9900CEF71A /* ThreadsLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadsLoader.swift; sourceTree = "<group>"; };
 		B04497F52608EC5700CEF71A /* AttachmentsLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsLoader.swift; sourceTree = "<group>"; };
 		B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadTableViewCell.swift; sourceTree = "<group>"; };
 		B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComponentExtractor.swift; sourceTree = "<group>"; };
+		B07D68AD261022E100314FE3 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
+		B07D68B52610230100314FE3 /* ThreadVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadVM.swift; sourceTree = "<group>"; };
+		B07D68BD2610236800314FE3 /* MessageVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageVM.swift; sourceTree = "<group>"; };
+		B07D68FD261073AD00314FE3 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		B0834B7925D14D93008E1807 /* EmailClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EmailClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0834B7C25D14D93008E1807 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B0834B7E25D14D93008E1807 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -161,11 +188,9 @@
 		B011E63D25ECFA59002FDB34 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				B0C847F325D573C2004A0861 /* Message.swift */,
-				B024066325DA372A00884D1E /* Model.swift */,
-				B01CC0842605A4B50050A157 /* Thread.swift */,
-				B01CC0892605A5270050A157 /* History.swift */,
-				B029EF1B26072338004043BF /* Label.swift */,
+				B07D68AC261022C300314FE3 /* ViewModel */,
+				B0CA553B2610131D007B9D22 /* GMailAPI */,
+				B0CA553A261012FC007B9D22 /* CoreData */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -175,6 +200,9 @@
 			children = (
 				B01CC07C2605A2AF0050A157 /* GMailAPIService.swift */,
 				B01CC0962605D2520050A157 /* CachedGMailAPIService.swift */,
+				B034C40A260D7B78002731D0 /* ThreadService.swift */,
+				B034C40F260D8232002731D0 /* DBService.swift */,
+				B034C417260D8339002731D0 /* MessageService.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -198,9 +226,20 @@
 			path = TableViewCells;
 			sourceTree = "<group>";
 		};
+		B07D68AC261022C300314FE3 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				B07D68AD261022E100314FE3 /* ViewModel.swift */,
+				B07D68B52610230100314FE3 /* ThreadVM.swift */,
+				B07D68BD2610236800314FE3 /* MessageVM.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		B0834B7025D14D93008E1807 = {
 			isa = PBXGroup;
 			children = (
+				B07D68FC261073AD00314FE3 /* Model.xcdatamodeld */,
 				B04497EC2608BB8A00CEF71A /* Loader */,
 				B01CC07B2605A2A10050A157 /* Service */,
 				B0834B7B25D14D93008E1807 /* EmailClient */,
@@ -262,6 +301,32 @@
 				B0834BA025D14D94008E1807 /* Info.plist */,
 			);
 			path = EmailClientUITests;
+			sourceTree = "<group>";
+		};
+		B0CA553A261012FC007B9D22 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				B025A71B260F5D2900E2C771 /* Thread+CoreDataClass.swift */,
+				B025A71C260F5D2900E2C771 /* Thread+CoreDataProperties.swift */,
+				B025A737260F7FC100E2C771 /* MessageAttachment+CoreDataClass.swift */,
+				B025A738260F7FC100E2C771 /* MessageAttachment+CoreDataProperties.swift */,
+				B025A722260F7D2F00E2C771 /* Label+CoreDataClass.swift */,
+				B025A723260F7D2F00E2C771 /* Label+CoreDataProperties.swift */,
+				B025A724260F7D2F00E2C771 /* Message+CoreDataClass.swift */,
+				B025A725260F7D2F00E2C771 /* Message+CoreDataProperties.swift */,
+			);
+			path = CoreData;
+			sourceTree = "<group>";
+		};
+		B0CA553B2610131D007B9D22 /* GMailAPI */ = {
+			isa = PBXGroup;
+			children = (
+				B0C847F325D573C2004A0861 /* Message.swift */,
+				B01CC0842605A4B50050A157 /* Thread.swift */,
+				B01CC0892605A5270050A157 /* History.swift */,
+				B029EF1B26072338004043BF /* Label.swift */,
+			);
+			path = GMailAPI;
 			sourceTree = "<group>";
 		};
 		CD26253CD34A6B08BA4B2A02 /* Frameworks */ = {
@@ -561,35 +626,48 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B07D68FE261073AD00314FE3 /* Model.xcdatamodeld in Sources */,
 				B02F9F8F2609809000319909 /* ActivityIndicatorCollectionViewCell.swift in Sources */,
 				B0C847EC25D4D060004A0861 /* Networker.swift in Sources */,
 				B0ED900A25FA70C200163189 /* AttachmentCollectionViewCell.swift in Sources */,
+				B034C410260D8232002731D0 /* DBService.swift in Sources */,
+				B025A726260F7D2F00E2C771 /* Label+CoreDataClass.swift in Sources */,
 				B04497DE26086CDC00CEF71A /* Attachment.swift in Sources */,
+				B07D68BE2610236800314FE3 /* MessageVM.swift in Sources */,
+				B034C418260D8339002731D0 /* MessageService.swift in Sources */,
 				B04497F62608EC5700CEF71A /* AttachmentsLoader.swift in Sources */,
 				B0115CE525FF47FC008E8C00 /* ComposeViewController.swift in Sources */,
+				B025A728260F7D2F00E2C771 /* Message+CoreDataClass.swift in Sources */,
 				B01CC07D2605A2AF0050A157 /* GMailAPIService.swift in Sources */,
+				B025A71E260F5D2900E2C771 /* Thread+CoreDataProperties.swift in Sources */,
 				B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */,
 				B04497E3260872E700CEF71A /* FileViewController.swift in Sources */,
 				B01CC0972605D2520050A157 /* CachedGMailAPIService.swift in Sources */,
 				B011E63225ECF88B002FDB34 /* LoginViewController.swift in Sources */,
 				B0C847F425D573C2004A0861 /* Message.swift in Sources */,
 				B01CC08A2605A5270050A157 /* History.swift in Sources */,
+				B025A739260F7FC100E2C771 /* MessageAttachment+CoreDataClass.swift in Sources */,
+				B025A73A260F7FC100E2C771 /* MessageAttachment+CoreDataProperties.swift in Sources */,
 				B01CC0852605A4B50050A157 /* Thread.swift in Sources */,
 				B0834B7D25D14D93008E1807 /* AppDelegate.swift in Sources */,
+				B025A727260F7D2F00E2C771 /* Label+CoreDataProperties.swift in Sources */,
 				B029EF1C26072338004043BF /* Label.swift in Sources */,
 				B0115CE025FF3637008E8C00 /* MenuTableViewCell.swift in Sources */,
 				B02ABB9A25F9F330000C2B15 /* ThreadViewController.swift in Sources */,
-				B0ED901825FA7B5500163189 /* AttachmentCollectionViewCell.swift in Sources */,
 				B01CC09C260628B70050A157 /* MessageViewCell.swift in Sources */,
 				B0BB19B82600CFC7007A56B5 /* Constraints.swift in Sources */,
 				B0834B7F25D14D93008E1807 /* SceneDelegate.swift in Sources */,
 				B011E63125ECF88B002FDB34 /* MenuViewController.swift in Sources */,
 				B011E62F25ECF88B002FDB34 /* MessageComposeViewController.swift in Sources */,
 				B04497EE2608BB9900CEF71A /* ThreadsLoader.swift in Sources */,
+				B07D68AE261022E100314FE3 /* ViewModel.swift in Sources */,
+				B025A729260F7D2F00E2C771 /* Message+CoreDataProperties.swift in Sources */,
+				B07D68B62610230100314FE3 /* ThreadVM.swift in Sources */,
 				B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */,
+				B025A71D260F5D2900E2C771 /* Thread+CoreDataClass.swift in Sources */,
 				B011E62E25ECF88B002FDB34 /* FolderViewController.swift in Sources */,
-				B024066425DA372A00884D1E /* Model.swift in Sources */,
 				B0F51B7226039FA200785697 /* SplitViewController.swift in Sources */,
+				B034C40B260D7B78002731D0 /* ThreadService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -914,6 +992,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		B07D68FC261073AD00314FE3 /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				B07D68FD261073AD00314FE3 /* Model.xcdatamodel */,
+			);
+			currentVersion = B07D68FD261073AD00314FE3 /* Model.xcdatamodel */;
+			name = Model.xcdatamodeld;
+			path = EmailClient/Model/CoreData/Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = B0834B7125D14D93008E1807 /* Project object */;
 }

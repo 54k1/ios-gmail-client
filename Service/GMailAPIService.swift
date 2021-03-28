@@ -25,12 +25,19 @@ extension GMailAPIService {
     func executeMethod<T: Codable>(_ method: Method, completionHandler: @escaping (T?) -> Void) {
         let request = makeRequest(forMethod: method)
         Networker.fetch(fromRequest: request, completionHandler: {
-            (result: NetworkerResult<T>) in
-            guard case let .success(success) = result else {
+            (result: NetworkerResult) in
+            guard case let .success(dataOptional) = result, let data = dataOptional else {
                 completionHandler(nil)
                 return
             }
-            completionHandler(success)
+            let decoder = JSONDecoder()
+            do {
+                let object = try decoder.decode(T.self, from: data)
+                completionHandler(object)
+            } catch let e {
+                print(e)
+                completionHandler(nil)
+            }
         })
     }
 }
@@ -73,6 +80,7 @@ extension GMailAPIService.Method {
         case messages(MessagePath)
         case labels(LabelPath)
         case history(HistoryPath)
+        case users(UserPath)
 
         enum ThreadPath {
             case list(userId: String, pageToken: String?)
@@ -95,6 +103,10 @@ extension GMailAPIService.Method {
 
         enum HistoryPath {
             case list
+        }
+
+        enum UserPath: String {
+            case getProfile = "profile"
         }
     }
 }
@@ -133,6 +145,8 @@ private extension GMailAPIService.Method.Path {
             case .list:
                 ()
             }
+        case let .users(path):
+            method += path.rawValue
         }
         return method
     }

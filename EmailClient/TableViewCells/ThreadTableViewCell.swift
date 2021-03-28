@@ -30,7 +30,14 @@ extension ThreadTableViewCell {
         textLabel?.text = thread.messages?[0].fromName
         detailTextLabel?.text = thread.messages?[0].snippet
         imageView?.image = UIImage(systemName: "person.circle")
-        dateLabel.text = thread.messages?[0].date
+        dateLabel.text = thread.messages?[0].dateString
+    }
+
+    func configure(with threadVM: ViewModel.Thread) {
+        detailTextLabel?.text = threadVM.messages.first?.snippet
+        textLabel?.text = threadVM.messages.first?.from.name
+        imageView?.image = UIImage(systemName: "person.circle")
+        dateLabel.text = threadVM.messages.first?.dateString
     }
 
     func startLoading() {

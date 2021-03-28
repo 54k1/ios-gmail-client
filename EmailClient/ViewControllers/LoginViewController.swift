@@ -64,11 +64,7 @@ extension LoginViewController {
 
         let vc = SplitViewController(authorizationValue: user.authentication.accessToken)
         // folderViewController.label = (id: "INBOX", name: "inbox")
-        let uuid = Model.shared.registerContext(withLabelIds: ["INBOX"])
-        Model.shared.changeContext(toUUID: uuid)
 
-        // Set access token in Model
-        Model.token = user.authentication.accessToken
         print("authToken = \(user.authentication.accessToken!)")
 
         vc.modalPresentationStyle = .fullScreen

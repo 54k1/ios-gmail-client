@@ -140,11 +140,17 @@ extension MessageViewCell {
         }
         webView.loadHTMLString(extractedMessage.html, baseURL: nil)
         labelView.text = extractedMessage.from?.name
-        dateLabel.text = extractedMessage.date
+        dateLabel.text = extractedMessage.dateString
         attachmentsMetaData = extractedMessage.attachments
         if attachmentsMetaData.count > 0 {
             prepareToLoadAttachments()
         }
+    }
+
+    func configure(with messageVM: ViewModel.Message) {
+        webView.loadHTMLString(messageVM.html, baseURL: nil)
+        labelView.text = messageVM.from.name
+        dateLabel.text = messageVM.dateString
     }
 }
 

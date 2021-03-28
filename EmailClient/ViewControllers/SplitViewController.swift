@@ -5,12 +5,14 @@
 //  Created by SV on 18/03/21.
 //
 
+import CoreData
 import UIKit
 
 class SplitViewController: UISplitViewController {
     let service: CachedGmailAPIService
     init(authorizationValue: String) {
-        service = CachedGmailAPIService(authorizationValue: authorizationValue)
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        service = CachedGmailAPIService(authorizationValue: authorizationValue, context: context)
         super.init(style: .tripleColumn)
         setupViewControllers()
     }
@@ -57,7 +59,7 @@ extension SplitViewController: LabelSelectionDelegate {
 }
 
 extension SplitViewController: ThreadSelectionDelegate {
-    func didSelect(_ thread: GMailAPIService.Resource.Thread) {
+    func didSelect(_ thread: ViewModel.Thread) {
         guard let vc = viewController(for: .secondary) as? ThreadViewController else {
             return
         }

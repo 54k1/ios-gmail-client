@@ -24,13 +24,15 @@ class ThreadViewController: UIViewController {
     private let unselectedIndicatorLabel = UILabel()
 
     private var threadId: String?
-    private var thread: GMailAPIService.Resource.Thread?
+    // private var thread: GMailAPIService.Resource.Thread?
     private var heightForMessageWithId = [String: CGFloat]()
     private let extractor = MessageComponentExtractor()
     private let service: CachedGmailAPIService
     private let attachmentsLoader: AttachmentsLoader
     private var selectedMessageIds = Set<String>()
     private var extractedMessages = [MessageComponentExtractor.Message]()
+    private var messages = [ViewModel.Message]()
+    private var threadVM: ViewModel.Thread?
 
     init(service: CachedGmailAPIService) {
         self.service = service
@@ -86,7 +88,7 @@ extension ThreadViewController {
 
 extension ThreadViewController {
     func configure(with thread: GMailAPIService.Resource.Thread) {
-        self.thread = thread
+        // self.thread = thread
         title = thread.messages?.first?.snippet
         subjectHeader.text = thread.messages?.first?.headerValueFor(key: "Subject")
         guard let messages = thread.messages else {
@@ -113,16 +115,19 @@ extension ThreadViewController {
         unselectedIndicatorLabel.isHidden = true
         tableView.reloadData()
     }
+
+    func configure(with threadVM: ViewModel.Thread) {
+        title = threadVM.messages.first?.subject
+        subjectHeader.text = title
+        self.threadVM = threadVM
+        unselectedIndicatorLabel.isHidden = true
+        tableView.reloadData()
+    }
 }
 
 extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
-    func numberOfSections(in _: UITableView) -> Int {
-        // thread?.messages?.count ?? 0
-        1
-    }
-
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        thread?.messages?.count ?? 0
+        threadVM?.messages.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -132,14 +137,14 @@ extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
 
         cell.delegate = self
         cell.attachmentsLoader = attachmentsLoader
-        cell.configure(with: .success(extractedMessages[indexPath.row]))
+        cell.configure(with: threadVM!.messages[indexPath.row])
 
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let messageId = thread!.messages![indexOfThread(withIndexPath: indexPath)].id
+        let messageId = threadVM!.messages[indexOfThread(withIndexPath: indexPath)].id
         guard let cell = tableView.cellForRow(at: indexPath) as? MessageViewCell else {
             NSLog("cellForRow(at:) returned nil")
             return
@@ -155,7 +160,7 @@ extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let messageId = thread!.messages![indexOfThread(withIndexPath: indexPath)].id
+        let messageId = threadVM!.messages[indexOfThread(withIndexPath: indexPath)].id
         if selectedMessageIds.contains(messageId), let height = heightForMessageWithId[messageId] {
             return height
         }
@@ -172,7 +177,7 @@ extension ThreadViewController: UITableViewDelegate, UITableViewDataSource {
 }
 
 extension ThreadViewController: ThreadSelectionDelegate {
-    func didSelect(_ thread: GMailAPIService.Resource.Thread) {
+    func didSelect(_ thread: ViewModel.Thread) {
         configure(with: thread)
     }
 }

@@ -47,7 +47,8 @@ class MessageComponentExtractor {
 
         let from: User?
         let to: User?
-        let date: String?
+        let dateString: String?
+        let date: Date?
         let html: String
         let attachments: [AttachmentMetaData]
     }
@@ -98,7 +99,7 @@ extension MessageComponentExtractor {
             toUser = Message.User(name: toName, email: toEmail)
         }
 
-        return .success(Message(from: fromUser, to: toUser, date: message.date, html: htmlString, attachments: attachments))
+        return .success(Message(from: fromUser, to: toUser, dateString: message.dateString, date: message.date, html: htmlString, attachments: attachments))
     }
 
     private func extract(_ part: GMailAPIService.Resource.Message.Part, messageId: String) -> Result<Any, ExtractionError> {
@@ -213,7 +214,7 @@ extension GMailAPIService.Resource.Message {
         return Self.extractEmail(to)
     }
 
-    var date: String? {
+    var dateString: String? {
         guard let dateString = headerValueFor(key: "Date") else {
             return nil
         }
@@ -228,5 +229,17 @@ extension GMailAPIService.Resource.Message {
             formatter.dateFormat = "HH:mm"
         }
         return formatter.string(from: date)
+    }
+
+    var date: Date? {
+        guard let dateString = headerValueFor(key: "Date") else {
+            return nil
+        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+        guard let date = formatter.date(from: dateString) else {
+            return nil
+        }
+        return date
     }
 }

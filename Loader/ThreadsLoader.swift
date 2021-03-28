@@ -5,14 +5,16 @@
 //  Created by SV on 22/03/21.
 //
 
+import CoreData
 import Foundation
 import UIKit
 
 class ThreadsLoader: NSObject {
-    private var threads = [GMailAPIService.Resource.Thread]()
     private let service: CachedGmailAPIService
     private let labelId: String
     private let maxResults = 10
+    weak var table: UITableView?
+    private var threads = [ViewModel.Thread]()
 
     init(forLabelId labelId: String, service: CachedGmailAPIService) {
         self.service = service
@@ -21,8 +23,52 @@ class ThreadsLoader: NSObject {
 }
 
 extension ThreadsLoader {
-    func getThread(atIndexPath indexPath: IndexPath) -> GMailAPIService.Resource.Thread? {
-        threads[indexPath.row]
+    func getThread(atIndexPath indexPath: IndexPath) -> ViewModel.Thread? {
+        guard indexPath.row < threads.count else {
+            return nil
+        }
+        return threads[indexPath.row]
+        // return ViewModel.Thread(from: threads[indexPath.row])
+    }
+}
+
+extension ThreadsLoader {
+    func partialSync(onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
+        service.partialSync(andReturnThreadsWithLabelId: labelId) {
+            [weak self]
+            historyResponse in
+            guard case let .success(success) = historyResponse else {
+                onFailure()
+                return
+            }
+            guard case let .catchUp(threads) = success else {
+                print("Up to date")
+                onSuccess()
+                return
+            }
+            // self?.threads = threads
+            DispatchQueue.main.async {
+                self?.table?.reloadData()
+            }
+            onSuccess()
+        }
+    }
+
+    func initialLoad() {
+        service.localThreadsSyncOrFullSync(forLabelId: labelId, withMaxResults: maxResults) {
+            threadVMs in
+            self.threads = threadVMs
+            DispatchQueue.main.async {
+                self.table?.reloadData()
+            }
+        }
+    }
+
+    func fetchNextBatch() {
+        service.fetchNextBatch(forLabelId: labelId, withMaxResults: maxResults) {
+            threadVMs in
+            self.threads = threadVMs
+        }
     }
 }
 
@@ -37,40 +83,8 @@ extension ThreadsLoader: UITableViewDataSource {
         }
 
         let row = indexPath.row
-        let thread = threads[row]
-
-        if let messages = thread.messages {
-            cell.configure(with: thread)
-            return cell
-        }
-
-        cell.startLoading()
-        service.get(threadWithId: thread.id, completionHandler: {
-            threadDetail in
-            guard let thread = threadDetail else {
-                return
-            }
-            self.threads[row] = thread
-            DispatchQueue.main.async {
-                tableView.reloadRows(at: [indexPath], with: .fade)
-            }
-        })
+        let threadVM = threads[row]
+        cell.configure(with: threadVM)
         return cell
-    }
-}
-
-extension ThreadsLoader {
-    typealias Handler = () -> Void
-    func loadNextBatch(completionHandler: @escaping Handler) {
-        service.fetchNextBatch(forLabelId: labelId, withMaxResults: maxResults, completionHandler: {
-            threadListResponse in
-            defer {
-                completionHandler()
-            }
-            guard let threads = threadListResponse?.threads else {
-                return
-            }
-            self.threads.append(contentsOf: threads)
-        })
     }
 }
