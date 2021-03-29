@@ -10,6 +10,11 @@
         <attribute name="name" attributeType="String"/>
         <attribute name="nextPageToken" optional="YES" attributeType="String"/>
         <relationship name="messages" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Message" inverseName="labels" inverseEntity="Message"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="Message" representedClassName=".MessageMO" syncable="YES">
         <attribute name="fromEmail" attributeType="String"/>
@@ -22,20 +27,36 @@
         <relationship name="attachments" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Attachment" inverseName="message" inverseEntity="Attachment"/>
         <relationship name="labels" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Label" inverseName="messages" inverseEntity="Label"/>
         <relationship name="thread" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Thread" inverseName="messages" inverseEntity="Thread"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
-    <entity name="State" representedClassName="State" syncable="YES">
+    <entity name="State" representedClassName="StateMO" syncable="YES">
+        <attribute name="id" attributeType="String" defaultValueString="id"/>
         <attribute name="latestHistoryId" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="Thread" representedClassName=".ThreadMO" syncable="YES">
         <attribute name="id" attributeType="String"/>
-        <attribute name="lastMessageDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastMessageDate" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="messages" toMany="YES" deletionRule="Cascade" ordered="YES" destinationEntity="Message" inverseName="thread" inverseEntity="Message"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <elements>
         <element name="Attachment" positionX="0" positionY="0" width="128" height="74"/>
         <element name="Label" positionX="0" positionY="0" width="128" height="89"/>
         <element name="Message" positionX="0" positionY="0" width="128" height="179"/>
-        <element name="State" positionX="9" positionY="81" width="128" height="44"/>
+        <element name="State" positionX="9" positionY="81" width="128" height="59"/>
         <element name="Thread" positionX="0" positionY="0" width="128" height="74"/>
     </elements>
 </model>

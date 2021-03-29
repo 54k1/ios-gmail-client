@@ -15,8 +15,8 @@ public extension ThreadMO {
     }
 
     @NSManaged var id: String?
-    @NSManaged var lastMessageDate: Date?
-    @NSManaged var messages: NSOrderedSet?
+    @NSManaged var lastMessageDate: Date
+    @NSManaged var messages: NSOrderedSet
 }
 
 // MARK: Generated accessors for messages

@@ -19,14 +19,15 @@ extension ThreadMO {
             msg.configure(with: $0, context: context)
             addToMessages(msg)
         }
-        do {
-            try context.save()
-        } catch let e {
-            NSLog(e.localizedDescription)
+
+        if let dateString = thread.messages?[0].headerValueFor(key: "Date"), let date = Date(fromRFC822String: dateString) {
+            lastMessageDate = date
+        } else {
+            lastMessageDate = Date()
         }
     }
 
     public var from: (name: String?, email: String) {
-        (name: (messages?[0] as? MessageMO)?.fromName, email: (messages![0] as! MessageMO).fromEmail)
+        (name: (messages[0] as? MessageMO)?.fromName, email: (messages[0] as! MessageMO).fromEmail)
     }
 }

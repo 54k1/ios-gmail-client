@@ -40,6 +40,8 @@
 		B04497EE2608BB9900CEF71A /* ThreadsLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497ED2608BB9900CEF71A /* ThreadsLoader.swift */; };
 		B04497F62608EC5700CEF71A /* AttachmentsLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497F52608EC5700CEF71A /* AttachmentsLoader.swift */; };
 		B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */; };
+		B04B64092611754D0076FD59 /* StateMO+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04B64072611754D0076FD59 /* StateMO+CoreDataClass.swift */; };
+		B04B640A2611754D0076FD59 /* StateMO+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04B64082611754D0076FD59 /* StateMO+CoreDataProperties.swift */; };
 		B06FBC0025E7B859008AB0A7 /* MessageComponentExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */; };
 		B07D68AE261022E100314FE3 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07D68AD261022E100314FE3 /* ViewModel.swift */; };
 		B07D68B62610230100314FE3 /* ThreadVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07D68B52610230100314FE3 /* ThreadVM.swift */; };
@@ -113,6 +115,8 @@
 		B04497ED2608BB9900CEF71A /* ThreadsLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadsLoader.swift; sourceTree = "<group>"; };
 		B04497F52608EC5700CEF71A /* AttachmentsLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsLoader.swift; sourceTree = "<group>"; };
 		B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadTableViewCell.swift; sourceTree = "<group>"; };
+		B04B64072611754D0076FD59 /* StateMO+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StateMO+CoreDataClass.swift"; sourceTree = "<group>"; };
+		B04B64082611754D0076FD59 /* StateMO+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StateMO+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		B06FBBFF25E7B859008AB0A7 /* MessageComponentExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageComponentExtractor.swift; sourceTree = "<group>"; };
 		B07D68AD261022E100314FE3 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		B07D68B52610230100314FE3 /* ThreadVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadVM.swift; sourceTree = "<group>"; };
@@ -306,6 +310,8 @@
 		B0CA553A261012FC007B9D22 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
+				B04B64072611754D0076FD59 /* StateMO+CoreDataClass.swift */,
+				B04B64082611754D0076FD59 /* StateMO+CoreDataProperties.swift */,
 				B025A71B260F5D2900E2C771 /* Thread+CoreDataClass.swift */,
 				B025A71C260F5D2900E2C771 /* Thread+CoreDataProperties.swift */,
 				B025A737260F7FC100E2C771 /* MessageAttachment+CoreDataClass.swift */,
@@ -644,12 +650,14 @@
 				B04497E3260872E700CEF71A /* FileViewController.swift in Sources */,
 				B01CC0972605D2520050A157 /* CachedGMailAPIService.swift in Sources */,
 				B011E63225ECF88B002FDB34 /* LoginViewController.swift in Sources */,
+				B04B64092611754D0076FD59 /* StateMO+CoreDataClass.swift in Sources */,
 				B0C847F425D573C2004A0861 /* Message.swift in Sources */,
 				B01CC08A2605A5270050A157 /* History.swift in Sources */,
 				B025A739260F7FC100E2C771 /* MessageAttachment+CoreDataClass.swift in Sources */,
 				B025A73A260F7FC100E2C771 /* MessageAttachment+CoreDataProperties.swift in Sources */,
 				B01CC0852605A4B50050A157 /* Thread.swift in Sources */,
 				B0834B7D25D14D93008E1807 /* AppDelegate.swift in Sources */,
+				B04B640A2611754D0076FD59 /* StateMO+CoreDataProperties.swift in Sources */,
 				B025A727260F7D2F00E2C771 /* Label+CoreDataProperties.swift in Sources */,
 				B029EF1C26072338004043BF /* Label.swift in Sources */,
 				B0115CE025FF3637008E8C00 /* MenuTableViewCell.swift in Sources */,

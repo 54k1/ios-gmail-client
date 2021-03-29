@@ -29,10 +29,11 @@ extension MessageMO {
         }
 
         message.labelIds.forEach {
-            let label = LabelMO(context: context)
-            label.id = $0
-            label.name = $0
-            self.addToLabels(label)
+            labelId in
+            let mo = LabelMO(context: context)
+            mo.id = labelId
+            mo.name = labelId
+            self.addToLabels(mo)
         }
     }
 }

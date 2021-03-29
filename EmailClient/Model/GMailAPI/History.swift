@@ -14,7 +14,7 @@ extension GMailAPIService.Resource {
         let messagesAdded: [MessageChanged]?
         let messagesDeleted: [MessageChanged]?
         let labelsAdded: [LabelChanged]?
-        let labelsDeleted: [LabelChanged]?
+        let labelsRemoved: [LabelChanged]?
     }
 }
 

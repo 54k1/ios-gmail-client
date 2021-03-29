@@ -11,3 +11,10 @@ import Foundation
 
 @objc(Label)
 public class LabelMO: NSManagedObject {}
+
+extension LabelMO {
+    func configure(with label: GMailAPIService.Resource.Label) {
+        id = label.id
+        name = label.name
+    }
+}

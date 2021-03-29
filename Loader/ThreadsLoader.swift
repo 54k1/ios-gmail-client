@@ -35,7 +35,6 @@ extension ThreadsLoader {
 extension ThreadsLoader {
     func partialSync(onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
         service.partialSync(andReturnThreadsWithLabelId: labelId) {
-            [weak self]
             historyResponse in
             guard case let .success(success) = historyResponse else {
                 onFailure()
@@ -46,19 +45,24 @@ extension ThreadsLoader {
                 onSuccess()
                 return
             }
-            // self?.threads = threads
-            DispatchQueue.main.async {
-                self?.table?.reloadData()
+            self.service.localThreadsSyncOrFullSync(forLabelId: self.labelId, withMaxResults: self.maxResults) {
+                threadVMs in
+                DispatchQueue.main.async {
+                    self.threads = threadVMs
+                    self.table?.reloadData()
+                }
             }
+
             onSuccess()
         }
     }
 
     func initialLoad() {
-        service.localThreadsSyncOrFullSync(forLabelId: labelId, withMaxResults: maxResults) {
+        // service.fullSync(withMaxResults: maxResults)
+        service.localThreadsSyncOrFullSync(forLabelId: labelId, withMaxResults: 20) {
             threadVMs in
-            self.threads = threadVMs
             DispatchQueue.main.async {
+                self.threads = threadVMs
                 self.table?.reloadData()
             }
         }

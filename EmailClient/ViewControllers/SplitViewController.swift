@@ -11,7 +11,8 @@ import UIKit
 class SplitViewController: UISplitViewController {
     let service: CachedGmailAPIService
     init(authorizationValue: String) {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.newBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         service = CachedGmailAPIService(authorizationValue: authorizationValue, context: context)
         super.init(style: .tripleColumn)
         setupViewControllers()

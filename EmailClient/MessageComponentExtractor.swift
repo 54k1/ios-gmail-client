@@ -215,14 +215,11 @@ extension GMailAPIService.Resource.Message {
     }
 
     var dateString: String? {
-        guard let dateString = headerValueFor(key: "Date") else {
+        guard let dateString = headerValueFor(key: "Date"), let date = Date(fromRFC822String: dateString) else {
             return nil
         }
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
-        guard let date = formatter.date(from: dateString) else {
-            return nil
-        }
         if date.distance(to: Date()) > 24 * 60 * 60 {
             formatter.dateFormat = "dd MMM"
         } else {
@@ -235,11 +232,17 @@ extension GMailAPIService.Resource.Message {
         guard let dateString = headerValueFor(key: "Date") else {
             return nil
         }
+        return Date(fromRFC822String: dateString)
+    }
+}
+
+extension Date {
+    init?(fromRFC822String dateString: String) {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
         guard let date = formatter.date(from: dateString) else {
             return nil
         }
-        return date
+        self = date
     }
 }
