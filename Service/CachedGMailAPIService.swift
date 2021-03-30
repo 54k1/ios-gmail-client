@@ -11,19 +11,18 @@ import GoogleAPIClientForREST
 
 class CachedGmailAPIService {
     let service: GMailAPIService
-    let messageCache = NSCache<NSString, GMailAPIService.Resource.Message>()
-    let threadsCache = NSCache<NSString, GMailAPIService.Resource.Thread>()
     let attachmentsCache = NSCache<NSString, Attachment>()
     let labelMetadataCache = NSCache<NSString, NSString>()
-    var threadListForLabel = [String: [GMailAPIService.Resource.Thread]]()
     var latestHistoryId: String?
     let threadService: ThreadService
     let messageService: MessageService
     let dbService: DBService
+    let context: NSManagedObjectContext
 
     let requestSerialQueue = DispatchQueue(label: "request.queue")
 
     init(authorizationValue: String, context: NSManagedObjectContext) {
+        self.context = context
         service = GMailAPIService(withAuthorizationValue: authorizationValue)
         dbService = DBService(context: context)
         threadService = ThreadService(service: service)
@@ -39,7 +38,7 @@ class CachedGmailAPIService {
     }
 }
 
-// MARK: Readable typealiases and Utility Methods
+// MARK: Readable typealiases
 
 extension CachedGmailAPIService {
     private typealias Thread = GMailAPIService.Resource.Thread
@@ -54,32 +53,6 @@ extension CachedGmailAPIService {
 
     typealias APIResult<T> = Result<T, APIError>
     typealias Handler<T> = (APIResult<T>) -> Void
-
-    private func associate(thread: Thread, withLabelId labelId: String) {
-        if threadListForLabel[labelId] == nil {
-            threadListForLabel[labelId] = [Thread]()
-        }
-        threadListForLabel[labelId]?.append(thread)
-    }
-
-    private func disassociate(thread _: Thread, fromLabelId labelId: String) {
-        guard threadListForLabel[labelId] != nil else { return }
-        threadListForLabel[labelId]?.removeAll(where: {
-            $0.messages?.contains(where: {
-                $0.labelIds.contains(labelId)
-            }) ?? false
-        })
-    }
-
-    private func removeDuplicatesAndSortThreads() {
-        threadListForLabel = threadListForLabel.mapValues {
-            threads in
-            threads.sorted(by: {
-                $0.messages![0].internalDate > $1.messages![0].internalDate
-                // $0.historyId > $1.historyId
-            })
-        }
-    }
 }
 
 // MARK: Fetch Threads
@@ -114,16 +87,14 @@ extension CachedGmailAPIService {
         ]
         if let labelId = labelId {
             queryParameters["labelIds"] = labelId
+        } else {
+            queryParameters["includeSpamTrash"] = "TRUE"
         }
         let method = GMailAPIService.Method(pathParameters: path, queryParameters: queryParameters)
         service.executeMethod(method, completionHandler: {
             (threadList: GMailAPIService.Resource.ThreadListResponse?) in
             completionHandler(threadList)
         })
-    }
-
-    func getFromCache(threadWithId threadId: String) -> GMailAPIService.Resource.Thread? {
-        threadsCache.object(forKey: threadId as NSString)
     }
 
     func get(threadWithId threadId: String, completionHandler: @escaping (GMailAPIService.Resource.Thread?) -> Void) {
@@ -257,10 +228,10 @@ extension CachedGmailAPIService {
 
     enum HistoryResponse {
         case upToDate
-        case catchUp([ViewModel.Thread])
+        case catchUp
     }
 
-    func partialSync(andReturnThreadsWithLabelId _: String, completionHandler: @escaping Handler<HistoryResponse>) {
+    func partialSync(completionHandler: @escaping Handler<HistoryResponse>) {
         guard let startHistoryId = latestHistoryId else {
             completionHandler(.failure(.fullSyncNotPerformed))
             NSLog("Latest historyId not fetched or was evicted")
@@ -283,7 +254,6 @@ extension CachedGmailAPIService {
 
             let group = DispatchGroup()
             for history in history {
-                print("history=", history)
                 if let messagesAdded = history.messagesAdded {
                     self.syncMessagesAdded(messagesAdded, group: group)
                 }
@@ -297,10 +267,10 @@ extension CachedGmailAPIService {
                     self.syncLabelsDeleted(labelsDeleted)
                 }
             }
-            DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
+            group.notify(queue: DispatchQueue.global()) {
                 self.dbService.save()
                 self.latestHistoryId = historyListResponse.historyId
-                completionHandler(.success(.catchUp([])))
+                completionHandler(.success(.catchUp))
             }
         }
     }
@@ -484,9 +454,6 @@ extension CachedGmailAPIService {
         }
     }
 
-    /// Perform when db is empty
-    // Fetch 20 (at the most) threads from each label and store them in the db
-    // Also store the nextPageToken of each of them
     func fullSync(withMaxResults maxResults: Int) {
         let group = DispatchGroup()
         group.enter()

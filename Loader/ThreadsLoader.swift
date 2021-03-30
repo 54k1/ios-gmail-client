@@ -11,74 +11,84 @@ import UIKit
 
 class ThreadsLoader: NSObject {
     private let service: CachedGmailAPIService
+    private lazy var nsfrc: NSFetchedResultsController<ThreadMO> = {
+        let request: NSFetchRequest<ThreadMO> = ThreadMO.fetchRequest()
+        request.predicate = NSPredicate(format: "SUBQUERY(messages, $m, ANY $m.labels.id LIKE %@).@count > 0", labelId)
+        request.sortDescriptors = [NSSortDescriptor(key: "lastMessageDate", ascending: false)]
+        request.fetchBatchSize = 20
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let nsfrc = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        nsfrc.delegate = self
+        return nsfrc
+    } ()
     private let labelId: String
     private let maxResults = 10
     weak var table: UITableView?
-    private var threads = [ViewModel.Thread]()
 
     init(forLabelId labelId: String, service: CachedGmailAPIService) {
         self.service = service
         self.labelId = labelId
+        super.init()
+        initialLoad()
+        setupFRC()
+    }
+    
+    func setupFRC() {
+        let didSaveNotification = NSManagedObjectContext.didSaveObjectsNotification
+        NotificationCenter.default.addObserver(self, selector: #selector(didSave), name: didSaveNotification, object: nil)
+    }
+    
+    @objc func didSave(_ notification: NSNotification) {
+        initialLoad()
     }
 }
 
 extension ThreadsLoader {
     func getThread(atIndexPath indexPath: IndexPath) -> ViewModel.Thread? {
-        guard indexPath.row < threads.count else {
+        guard indexPath.row < nsfrc.fetchedObjects?.count ?? 0 else {
             return nil
         }
-        return threads[indexPath.row]
-        // return ViewModel.Thread(from: threads[indexPath.row])
+        return .init(from: nsfrc.fetchedObjects![indexPath.row])
     }
 }
 
 extension ThreadsLoader {
     func partialSync(onSuccess: @escaping () -> Void, onFailure: @escaping () -> Void) {
-        service.partialSync(andReturnThreadsWithLabelId: labelId) {
+        service.partialSync() {
             historyResponse in
             guard case let .success(success) = historyResponse else {
                 onFailure()
                 return
             }
-            guard case let .catchUp(threads) = success else {
-                print("Up to date")
-                onSuccess()
-                return
+            
+            switch success {
+            case .catchUp:
+                print("have to catch up")
+            case .upToDate:
+                print("Up to Date")
             }
-            self.service.localThreadsSyncOrFullSync(forLabelId: self.labelId, withMaxResults: self.maxResults) {
-                threadVMs in
-                DispatchQueue.main.async {
-                    self.threads = threadVMs
-                    self.table?.reloadData()
-                }
+            DispatchQueue.main.async {
+                self.table?.reloadData()
             }
-
             onSuccess()
         }
     }
 
     func initialLoad() {
-        // service.fullSync(withMaxResults: maxResults)
-        service.localThreadsSyncOrFullSync(forLabelId: labelId, withMaxResults: 20) {
-            threadVMs in
-            DispatchQueue.main.async {
-                self.threads = threadVMs
-                self.table?.reloadData()
-            }
-        }
-    }
-
-    func fetchNextBatch() {
-        service.fetchNextBatch(forLabelId: labelId, withMaxResults: maxResults) {
-            threadVMs in
-            self.threads = threadVMs
+        do {
+            try nsfrc.performFetch()
+        } catch let err {
+            print(err)
         }
     }
 }
 
 extension ThreadsLoader: UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        nsfrc.sections?.count ?? 0
+    }
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        threads.count
+        nsfrc.fetchedObjects?.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -87,8 +97,22 @@ extension ThreadsLoader: UITableViewDataSource {
         }
 
         let row = indexPath.row
-        let threadVM = threads[row]
+        guard let threadMO = nsfrc.fetchedObjects?[row] else {
+            fatalError("ThreadMO index out of range of nsfrc.fetchedObjects")
+        }
+        let threadVM = ViewModel.Thread(from: threadMO)
         cell.configure(with: threadVM)
         return cell
+    }
+}
+
+extension ThreadsLoader: NSFetchedResultsControllerDelegate {
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
     }
 }

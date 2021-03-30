@@ -11,9 +11,13 @@ import UIKit
 class SplitViewController: UISplitViewController {
     let service: CachedGmailAPIService
     init(authorizationValue: String) {
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.newBackgroundContext()
+        let persistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
+        let context = persistentContainer.viewContext
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        service = CachedGmailAPIService(authorizationValue: authorizationValue, context: context)
+        context.automaticallyMergesChangesFromParent = true
+        let ctx = persistentContainer.newBackgroundContext()
+        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        service = CachedGmailAPIService(authorizationValue: authorizationValue, context: ctx)
         super.init(style: .tripleColumn)
         setupViewControllers()
     }
@@ -49,10 +53,6 @@ extension SplitViewController {
 
 extension SplitViewController: LabelSelectionDelegate {
     func didSelect(label _: (id: String, name: String), withVC vc: FolderViewController) {
-        // guard let vc = viewController(for: .supplementary) as? FolderViewController else {
-        //     return
-        // }
-        // vc.didSelect(label: label)
         vc.threadSelectionDelegate = self
         setViewController(vc, for: .supplementary)
         show(.supplementary)

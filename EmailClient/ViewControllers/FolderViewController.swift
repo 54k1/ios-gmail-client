@@ -40,8 +40,6 @@ class FolderViewController: UIViewController {
         title = label.name.capitalized
 
         setupViews()
-        // threadsProvider.initialLoad()
-        threadsProvider.initialLoad()
     }
 }
 
@@ -109,36 +107,6 @@ extension FolderViewController {
     func loadNextBatch() {
         startLoadingFooter()
     }
-
-//    func loadNextBatch() {
-//        if doneFetching {
-//            return
-//        }
-//        isFetchingNextBatch = true
-//        tableView.tableFooterView?.isHidden = false
-//        Model.shared.fetchNextThreadBatch(withSize: batchSize, withLabelId: label.id, completionHandler: {
-//            threadListResponse in
-//            self.isFetchingNextBatch = false
-//            if threadListResponse.resultSizeEstimate == 0 {
-//                self.doneFetching = true
-//            }
-//            DispatchQueue.main.async {
-//                self.tableView.reloadData()
-//                self.tableView.isHidden = false
-//                self.tableView.tableFooterView?.isHidden = true
-//            }
-//        })
-//    }
-
-//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        guard !isFetchingNextBatch else {
-//            return
-//        }
-//        let position = scrollView.contentOffset.y
-//        if position > (tableView.contentSize.height - 100 - scrollView.frame.height), !doneFetching {
-//            loadNextBatch()
-//        }
-//    }
 }
 
 extension FolderViewController {

@@ -123,6 +123,7 @@ extension DBService {
         do {
             try context.save()
         } catch let e {
+            context.rollback()
             print(e)
         }
     }
