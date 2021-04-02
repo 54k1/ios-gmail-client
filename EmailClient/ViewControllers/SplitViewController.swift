@@ -9,7 +9,7 @@ import CoreData
 import UIKit
 
 class SplitViewController: UISplitViewController {
-    let service: CachedGmailAPIService
+    let service: SyncService
     init(authorizationValue: String) {
         let persistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
         let context = persistentContainer.viewContext
@@ -17,7 +17,7 @@ class SplitViewController: UISplitViewController {
         context.automaticallyMergesChangesFromParent = true
         let ctx = persistentContainer.newBackgroundContext()
         ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        service = CachedGmailAPIService(authorizationValue: authorizationValue, context: ctx)
+        service = SyncService(authorizationValue: authorizationValue, context: ctx)
         super.init(style: .tripleColumn)
         setupViewControllers()
     }
@@ -40,7 +40,7 @@ extension SplitViewController {
     func setupViewControllers() {
         let menuViewController = MenuViewController(service: service)
         let folderViewController = menuViewController.primaryViewController
-        let threadViewController = ThreadViewController(service: service)
+        let threadViewController = ThreadDetailViewController(service: service)
 
         setViewController(menuViewController, for: .primary)
         setViewController(folderViewController, for: .supplementary)
@@ -61,7 +61,7 @@ extension SplitViewController: LabelSelectionDelegate {
 
 extension SplitViewController: ThreadSelectionDelegate {
     func didSelect(_ thread: ViewModel.Thread) {
-        guard let vc = viewController(for: .secondary) as? ThreadViewController else {
+        guard let vc = viewController(for: .secondary) as? ThreadDetailViewController else {
             return
         }
         vc.didSelect(thread)

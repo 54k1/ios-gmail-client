@@ -12,9 +12,16 @@ import Foundation
 @objc(Label)
 public class LabelMO: NSManagedObject {}
 
+extension LabelMO: Managed {}
+
 extension LabelMO {
-    func configure(with label: GMailAPIService.Resource.Label) {
-        id = label.id
-        name = label.name
+    convenience init(context: NSManagedObjectContext, id: String, name: String) {
+        self.init(context: context)
+        self.id = id
+        self.name = name
+    }
+
+    static func fetch(id: String, in context: NSManagedObjectContext) -> Self? {
+        return Self.findOrFetch(in: context, matching: NSPredicate(format: "id == %@", id))
     }
 }

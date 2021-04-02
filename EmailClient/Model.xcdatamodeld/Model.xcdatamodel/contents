@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17709" systemVersion="20D91" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Attachment" representedClassName=".AttachmentMO" syncable="YES">
+        <attribute name="data" optional="YES" attributeType="Binary"/>
+        <attribute name="filename" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="location" optional="YES" attributeType="String"/>
+        <attribute name="messageId" attributeType="String"/>
+        <attribute name="thumbnail" optional="YES" attributeType="Binary"/>
         <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Message" inverseName="attachments" inverseEntity="Message"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+                <constraint value="messageId"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <entity name="Label" representedClassName=".LabelMO" syncable="YES">
         <attribute name="id" attributeType="String"/>
@@ -53,7 +63,7 @@
         </uniquenessConstraints>
     </entity>
     <elements>
-        <element name="Attachment" positionX="0" positionY="0" width="128" height="74"/>
+        <element name="Attachment" positionX="0" positionY="0" width="128" height="134"/>
         <element name="Label" positionX="0" positionY="0" width="128" height="89"/>
         <element name="Message" positionX="0" positionY="0" width="128" height="179"/>
         <element name="State" positionX="9" positionY="81" width="128" height="59"/>

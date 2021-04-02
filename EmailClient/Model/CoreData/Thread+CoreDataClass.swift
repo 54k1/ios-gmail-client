@@ -9,14 +9,14 @@
 import CoreData
 import Foundation
 
-public class ThreadMO: NSManagedObject {}
+public final class ThreadMO: NSManagedObject {}
 
 extension ThreadMO {
-    func configure(with thread: GMailAPIService.Resource.Thread, context: NSManagedObjectContext) {
+    convenience init(context: NSManagedObjectContext, thread: GMailAPIService.Resource.Thread) {
+        self.init(context: context)
         id = thread.id
         thread.messages?.forEach {
-            let msg = MessageMO(context: context)
-            msg.configure(with: $0, context: context)
+            let msg = MessageMO(context: context, message: $0)
             addToMessages(msg)
         }
 
@@ -29,5 +29,11 @@ extension ThreadMO {
 
     public var from: (name: String?, email: String) {
         (name: (messages[0] as? MessageMO)?.fromName, email: (messages[0] as! MessageMO).fromEmail)
+    }
+}
+
+extension ThreadMO: Managed {
+    static var defaultSortDescriptors: [NSSortDescriptor] {
+        [NSSortDescriptor(key: #keyPath(lastMessageDate), ascending: false)]
     }
 }

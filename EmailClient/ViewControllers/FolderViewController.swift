@@ -5,29 +5,23 @@
 //  Created by SV on 15/02/21.
 //
 
+import CoreData
 import GoogleSignIn
 import UIKit
 
 class FolderViewController: UIViewController {
+    
     // MARK: SubViews
-
+    
     private let tableView = UITableView()
     private var refreshControl = UIRefreshControl()
 
-    weak var threadSelectionDelegate: ThreadSelectionDelegate?
-    private var label: (id: String, name: String)
-    private let service: CachedGmailAPIService
-    private var latestHistoryId: String?
-
-    private let maxResults = 10
-    private let threadsProvider: ThreadsLoader
-
-    init(service: CachedGmailAPIService, label: (id: String, name: String)) {
+    init(service: SyncService, label: (id: String, name: String)) {
         self.service = service
         self.label = label
-        threadsProvider = ThreadsLoader(forLabelId: label.id, service: service)
-        threadsProvider.table = tableView
         super.init(nibName: nil, bundle: nil)
+
+        setupDataSource()
     }
 
     @available(*, unavailable)
@@ -37,17 +31,37 @@ class FolderViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = label.name.capitalized
 
+        title = label.name.capitalized
         setupViews()
     }
+
+    // MARK: Private
+
+    private var label: (id: String, name: String)
+    private let service: SyncService
+    private var dataSource: TableViewDataSource<FolderViewController, ThreadMO>!
+    
+    weak var threadSelectionDelegate: ThreadSelectionDelegate?
 }
+
+// MARK: Setup DataSource
+
+extension FolderViewController {
+    private func setupDataSource() {
+        let request = ThreadMO.sortedFetchRequest
+        let moc = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let frc = NSFetchedResultsController(fetchRequest: request, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
+        dataSource = TableViewDataSource(tableView: tableView, delegate: self, frc: frc)
+    }
+}
+
+// MARK: Setup Views
 
 extension FolderViewController {
     private func setupViews() {
         setupTableView()
         setupRefreshControl()
-        setupLoadingFooter()
         view.backgroundColor = .white
     }
 
@@ -61,31 +75,22 @@ extension FolderViewController {
         tableView.tableFooterView = UIView()
         tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
-        tableView.dataSource = threadsProvider
-
+        tableView.dataSource = dataSource
         tableView.refreshControl = refreshControl
-    }
-
-    private func setupLoadingFooter() {
-        let footer = UIView()
-        tableView.addSubview(footer)
-        footer.setConstant(height: 100).set(widthTo: tableView.widthAnchor)
-        let spinner = UIActivityIndicatorView()
-        footer.addSubview(spinner)
-        spinner.center(in: footer)
-        tableView.tableFooterView = footer
-        spinner.startAnimating()
-        tableView.tableFooterView?.isHidden = true
     }
 }
 
+// MARK: UITableViewDelegate
+
 extension FolderViewController: UITableViewDelegate {
-    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let thread = threadsProvider.getThread(atIndexPath: indexPath) else {
-            NSLog("Thread did not load")
+    func tableView(_: UITableView, didSelectRowAt _: IndexPath) {
+        guard let thread = dataSource.selectedObject else {
+            NSLog("Unable to retreive selected thread in table")
             return
         }
-        threadSelectionDelegate?.didSelect(thread)
+
+        let vm = ViewModel.Thread(from: thread)
+        threadSelectionDelegate?.didSelect(vm)
     }
 
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
@@ -93,39 +98,33 @@ extension FolderViewController: UITableViewDelegate {
     }
 }
 
-extension FolderViewController {
-    func startLoadingFooter() {
-        tableView.tableFooterView?.isHidden = false
-    }
-
-    func stopLoadingFooter() {
-        tableView.tableFooterView?.isHidden = true
-    }
-}
+// MARK: Refresh
 
 extension FolderViewController {
-    func loadNextBatch() {
-        startLoadingFooter()
-    }
-}
-
-extension FolderViewController {
-    @objc func partialSync() {
-        threadsProvider.partialSync {
-            [weak self] in
+    @objc private func partialSync() {
+        service.partialSync(completionHandler: {
+            [weak self] _ in
             DispatchQueue.main.async {
-                self?.tableView.reloadData()
                 self?.refreshControl.endRefreshing()
             }
-        } onFailure: {
-            DispatchQueue.main.async {
-                [weak self] in
-                self?.refreshControl.endRefreshing()
-            }
-        }
+        })
     }
 }
 
 protocol ThreadSelectionDelegate: class {
     func didSelect(_ thread: ViewModel.Thread)
+}
+
+extension FolderViewController: TableViewDataSourceDelegate {
+    typealias Cell = ThreadTableViewCell
+    typealias Object = ThreadMO
+    
+    var cellReuseIdentifier: String {
+        ThreadTableViewCell.identifier
+    }
+
+    func configure(_ cell: ThreadTableViewCell, with object: ThreadMO) {
+        let threadVM = ViewModel.Thread(from: object)
+        cell.configure(with: threadVM)
+    }
 }

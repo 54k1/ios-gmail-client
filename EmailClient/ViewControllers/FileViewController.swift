@@ -35,11 +35,11 @@ extension FileViewController: QLPreviewControllerDataSource {
         attachments.count
     }
 
-    func previewController(_: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        let cachedItem = loader.loadCachedAttachment(withMetaData: attachments[index])
-        guard cachedItem == nil else {
-            return cachedItem!
-        }
+    func previewController(_: QLPreviewController, previewItemAt _: Int) -> QLPreviewItem {
+        // let cachedItem = loader.loadCachedAttachment(withMetaData: attachments[index])
+        // guard cachedItem == nil else {
+        //     return cachedItem!
+        // }
         return UIImage(named: "DefaultImage")!
     }
 }

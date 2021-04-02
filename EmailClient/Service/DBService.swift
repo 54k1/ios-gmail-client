@@ -20,13 +20,10 @@ class DBService {
 extension DBService {
     typealias ThreadsHandler = ([ThreadMO]?) -> Void
     func fetchNextBatch(withLabelId labelId: String, withMaxResults maxResults: Int, completionHandler: ThreadsHandler) {
-        let request: NSFetchRequest<ThreadMO> = ThreadMO.fetchRequest()
+        let request = ThreadMO.sortedFetchRequest
         request.fetchBatchSize = maxResults
-        // request.fetchOffset = fetchOffset
-        request.sortDescriptors = [NSSortDescriptor(key: "lastMessageDate", ascending: false)]
         do {
             let threads = try context.fetch(request)
-            fetchOffset += threads.count
             completionHandler(threads.filter {
                 $0.messages.contains {
                     messageMO in
@@ -44,16 +41,13 @@ extension DBService {
 
     func store(threads: [GMailAPIService.Resource.Thread]) {
         threads.forEach {
-            let thread = ThreadMO(context: context)
-            thread.configure(with: $0, context: self.context)
+            _ = ThreadMO(context: context, thread: $0)
         }
     }
 
     @discardableResult
-    func store(thread: GMailAPIService.Resource.Thread) -> ThreadMO? {
-        let threadMO = ThreadMO(context: context)
-        threadMO.configure(with: thread, context: context)
-        return threadMO
+    func store(thread: GMailAPIService.Resource.Thread) -> ThreadMO {
+        return ThreadMO(context: context, thread: thread)
     }
 }
 
@@ -115,8 +109,7 @@ extension DBService {
     }
 
     func store(label: GMailAPIService.Resource.Label) {
-        let labelMO = LabelMO(context: context)
-        labelMO.configure(with: label)
+        _ = LabelMO(context: context, id: label.id, name: label.name)
     }
 
     func save() {
@@ -148,5 +141,57 @@ extension DBService {
     func storeState(withHistoryId historyId: String) {
         let stateMO = StateMO(context: context)
         stateMO.latestHistoryId = historyId
+    }
+}
+
+extension DBService {
+    func storeAttachment(withId attachmentId: String, withMessageId messageId: String, withFilename filename: String, location: String) {
+        guard let messageMO = get(messageWithId: messageId) else {
+            NSLog("Unable to fetch messageMO for attachment")
+            return
+        }
+        let attachmentMO = AttachmentMO(context: context)
+        attachmentMO.id = attachmentId
+        attachmentMO.message = messageMO
+        attachmentMO.messageId = messageId
+        attachmentMO.location = location
+        attachmentMO.filename = filename
+        context.perform {
+            do {
+                try self.context.save()
+            } catch let err {
+                print(err)
+            }
+        }
+    }
+
+    func getAttachments(for threadId: String, callback: @escaping ([AttachmentMO]) -> Void) {
+        let predicate = NSPredicate(format: "SUBQUERY(attachments, $a, ANY $a.message.thread.id LIKE %@).@count > 0", threadId)
+        let request: NSFetchRequest<AttachmentMO> = AttachmentMO.fetchRequest()
+        request.predicate = predicate
+        performChanges(block: {
+            let attachments = try? self.context.fetch(request)
+            if attachments == nil { callback([]) }
+            else { callback(attachments!) }
+        })
+    }
+}
+
+extension DBService {
+    func saveOrRollback() -> Bool {
+        do {
+            try context.save()
+            return true
+        } catch {
+            context.rollback()
+            return false
+        }
+    }
+
+    func performChanges(block: @escaping () -> Void) {
+        context.perform {
+            block()
+            _ = self.saveOrRollback()
+        }
     }
 }

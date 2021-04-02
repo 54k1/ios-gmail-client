@@ -14,7 +14,7 @@ public extension ThreadMO {
         return NSFetchRequest<ThreadMO>(entityName: "Thread")
     }
 
-    @NSManaged var id: String?
+    @NSManaged var id: String
     @NSManaged var lastMessageDate: Date
     @NSManaged var messages: NSOrderedSet
 }

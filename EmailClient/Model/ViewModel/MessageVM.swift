@@ -13,26 +13,33 @@ extension ViewModel {
             let html = messageMO.html
             let date = messageMO.internalDate
             let subject = messageMO.subject
+            let snippet = messageMO.snippet
             let fromName = messageMO.fromName
             let fromEmail = messageMO.fromEmail
             let id = messageMO.id
-            self.init(html: html, date: date, subject: subject, snippet: messageMO.snippet, from: (name: fromName, email: fromEmail), id: id)
+            let attachments = messageMO.attachments?.compactMap {
+                Attachment(from: $0 as! AttachmentMO)
+            } ?? []
+            let from = (name: fromName, email: fromEmail)
+            self.init(id: id, snippet: snippet, subject: subject, date: date, from: from, html: html, attachments: attachments)
         }
 
-        init(html: String, date: Date, subject: String, snippet: String, from: (name: String?, email: String), id: String) {
-            self.html = html
-            self.date = date
-            self.subject = subject
-            self.snippet = snippet
-            self.from = from
+        init(id: String, snippet: String, subject: String, date: Date, from: (name: String?, email: String), html: String, attachments: [ViewModel.Attachment]) {
             self.id = id
+            self.snippet = snippet
+            self.subject = subject
+            self.date = date
+            self.from = from
+            self.html = html
+            self.attachments = attachments
         }
 
-        let html: String
-        let date: Date
-        let subject: String
-        let snippet: String
-        let from: (name: String?, email: String)
         let id: String
+        let snippet: String
+        let subject: String
+        let date: Date
+        let from: (name: String?, email: String)
+        let html: String
+        let attachments: [Attachment]
     }
 }

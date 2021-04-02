@@ -12,17 +12,19 @@ extension ViewModel {
         convenience init(from threadMO: ThreadMO) {
             let messages = threadMO.messages.compactMap {
                 Message(from: $0 as! MessageMO)
-            } ?? []
+            }
             let date = messages.first?.date ?? Date()
-            self.init(messages: messages, date: date)
+            self.init(id: threadMO.id, messages: messages, date: date)
         }
 
-        init(messages: [ViewModel.Message], date: Date) {
+        init(id: String, messages: [ViewModel.Message], date: Date) {
             self.messages = messages
             self.date = date
+            self.id = id
         }
 
         let messages: [Message]
         let date: Date
+        let id: String
     }
 }

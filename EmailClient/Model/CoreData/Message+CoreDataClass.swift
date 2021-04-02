@@ -13,7 +13,8 @@ import Foundation
 public class MessageMO: NSManagedObject {}
 
 extension MessageMO {
-    func configure(with message: GMailAPIService.Resource.Message, context: NSManagedObjectContext) {
+    convenience init(context: NSManagedObjectContext, message: GMailAPIService.Resource.Message) {
+        self.init(context: context)
         id = message.id
         snippet = message.snippet
         fromName = message.fromName
@@ -23,6 +24,11 @@ extension MessageMO {
         if case let .success(extracted) = extractor.extract(from: message) {
             html = extracted.html
             internalDate = extracted.date ?? Date()
+            for attachment in extracted.attachments {
+                let attachmentMO = AttachmentMO(context: context)
+                attachmentMO.configure(with: attachment, messageMO: self)
+                self.addToAttachments(attachmentMO)
+            }
         } else {
             html = "<h1>Cannot render html</h1>"
             internalDate = Date()
@@ -30,10 +36,11 @@ extension MessageMO {
 
         message.labelIds.forEach {
             labelId in
-            let mo = LabelMO(context: context)
-            mo.id = labelId
-            mo.name = labelId
-            self.addToLabels(mo)
+            guard let label = LabelMO.fetch(id: labelId, in: context) else {
+                NSLog("No lable with id: \(id)")
+                return
+            }
+            self.addToLabels(label)
         }
     }
 }

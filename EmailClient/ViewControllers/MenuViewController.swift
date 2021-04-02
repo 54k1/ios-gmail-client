@@ -123,8 +123,8 @@ class MenuViewController: UIViewController {
         return view
     }()
 
-    let service: CachedGmailAPIService
-    init(service: CachedGmailAPIService) {
+    let service: SyncService
+    init(service: SyncService) {
         self.service = service
         super.init(nibName: nil, bundle: nil)
 
