@@ -18,30 +18,12 @@ class DBService {
 }
 
 extension DBService {
-    typealias ThreadsHandler = ([ThreadMO]?) -> Void
-    func fetchNextBatch(withLabelId labelId: String, withMaxResults maxResults: Int, completionHandler: ThreadsHandler) {
-        let request = ThreadMO.sortedFetchRequest
-        request.fetchBatchSize = maxResults
-        do {
-            let threads = try context.fetch(request)
-            completionHandler(threads.filter {
-                $0.messages.contains {
-                    messageMO in
-                    (messageMO as! MessageMO).labels!.contains {
-                        label in
-                        (label as! LabelMO).id == labelId
-                    }
-                }
-            })
-        } catch let e {
-            print(e)
-            completionHandler(nil)
-        }
-    }
-
     func store(threads: [GMailAPIService.Resource.Thread]) {
         threads.forEach {
-            _ = ThreadMO(context: context, thread: $0)
+            thread in
+            perform {
+                _ = ThreadMO(context: self.context, thread: thread)
+            }
         }
     }
 
@@ -70,7 +52,9 @@ extension DBService {
         guard let messageMO = get(messageWithId: messageId) else {
             return
         }
-        context.delete(messageMO)
+        perform {
+            self.context.delete(messageMO)
+        }
     }
 
     func disassociate(labelId: String, fromMessageWithId messageId: String) {
@@ -78,7 +62,9 @@ extension DBService {
             NSLog("Unable to fetch messageMO or labelMO")
             return
         }
-        messageMO.removeFromLabels(labelMO)
+        perform {
+            messageMO.removeFromLabels(labelMO)
+        }
     }
 
     func associate(labelId: String, withMessageWithId messageId: String) {
@@ -86,7 +72,9 @@ extension DBService {
             NSLog("Unable to fetch messageMO or labelMO")
             return
         }
-        messageMO.addToLabels(labelMO)
+        perform {
+            messageMO.addToLabels(labelMO)
+        }
     }
 }
 
@@ -95,36 +83,29 @@ extension DBService {
         let request: NSFetchRequest<LabelMO> = LabelMO.fetchRequest()
         let predicate = NSPredicate(format: "id like %@", labelId)
         request.predicate = predicate
-        do {
-            let labels = try context.fetch(request)
-            if labels.count != 0 {
-                return labels[0]
-            } else {
-                return nil
+        var ret: LabelMO? = nil
+        context.performAndWait {
+            do {
+                let labels = try context.fetch(request)
+                if labels.count != 0 {
+                    ret = labels[0]
+                }
+            } catch let e {
+                print(e)
             }
-        } catch let e {
-            print(e)
-            return nil
         }
+        return ret
     }
 
     func store(label: GMailAPIService.Resource.Label) {
-        _ = LabelMO(context: context, id: label.id, name: label.name)
-    }
-
-    func save() {
-        do {
-            try context.save()
-        } catch let e {
-            context.rollback()
-            print(e)
+        perform {
+            _ = LabelMO(context: self.context, label: label)
         }
-    }
-}
+    }}
 
 extension DBService {
     func getState() -> StateMO? {
-        let request: NSFetchRequest<StateMO> = StateMO.fetchRequest()
+        let request: NSFetchRequest<StateMO> = StateMO.sortedFetchRequest
         do {
             let state = try context.fetch(request)
             if state.count != 0 {
@@ -139,8 +120,9 @@ extension DBService {
     }
 
     func storeState(withHistoryId historyId: String) {
-        let stateMO = StateMO(context: context)
-        stateMO.latestHistoryId = historyId
+        perform {
+            _ = StateMO(context: self.context, latestHistoryId: historyId)
+        }
     }
 }
 
@@ -150,18 +132,14 @@ extension DBService {
             NSLog("Unable to fetch messageMO for attachment")
             return
         }
-        let attachmentMO = AttachmentMO(context: context)
+        
+        perform {
+            let attachmentMO = AttachmentMO(context: self.context)
         attachmentMO.id = attachmentId
         attachmentMO.message = messageMO
         attachmentMO.messageId = messageId
         attachmentMO.location = location
         attachmentMO.filename = filename
-        context.perform {
-            do {
-                try self.context.save()
-            } catch let err {
-                print(err)
-            }
         }
     }
 
@@ -169,29 +147,41 @@ extension DBService {
         let predicate = NSPredicate(format: "SUBQUERY(attachments, $a, ANY $a.message.thread.id LIKE %@).@count > 0", threadId)
         let request: NSFetchRequest<AttachmentMO> = AttachmentMO.fetchRequest()
         request.predicate = predicate
-        performChanges(block: {
+        
+        perform {
             let attachments = try? self.context.fetch(request)
             if attachments == nil { callback([]) }
             else { callback(attachments!) }
-        })
+        }
     }
 }
 
 extension DBService {
-    func saveOrRollback() -> Bool {
-        do {
-            try context.save()
-            return true
-        } catch {
-            context.rollback()
-            return false
+    func saveOrRollback() {
+        perform {
+            self._saveOrRollback()
         }
     }
 
-    func performChanges(block: @escaping () -> Void) {
+    private func performAndSave(block: @escaping () -> Void) {
         context.perform {
             block()
-            _ = self.saveOrRollback()
+            self._saveOrRollback()
+        }
+    }
+    
+    private func _saveOrRollback() {
+        do {
+            try self.context.save()
+        } catch let err {
+            print("SaveError: ", err)
+            self.context.rollback()
+        }
+    }
+    
+    private func perform(block: @escaping () -> Void) {
+        context.perform {
+            block()
         }
     }
 }

@@ -10,29 +10,47 @@ import Foundation
 import QuickLook
 
 final class SyncService {
+    private let dbService: DBService
     private let service: GMailAPIService
     private let threadService: ThreadService
     private let messageService: MessageService
     private let attachmentService: AttachmentService
-    private let dbService: DBService
+    
+
     var latestHistoryId: String?
-    let context: NSManagedObjectContext
     private let requestSerialQueue = DispatchQueue(label: "request.queue")
+    
+    private let viewContext, backgroundContext: NSManagedObjectContext
 
-    init(authorizationValue: String, context: NSManagedObjectContext) {
-        self.context = context
-        service = GMailAPIService(withAuthorizationValue: authorizationValue)
-        dbService = DBService(context: context)
-        threadService = ThreadService(service: service)
-        messageService = MessageService(service: service)
-        attachmentService = AttachmentService(service: service)
+    init(authorizationValue: String, container: NSPersistentContainer) {
+        self.service = GMailAPIService(withAuthorizationValue: authorizationValue)
+        
+        self.threadService = ThreadService(service: service)
+        self.messageService = MessageService(service: service)
+        self.attachmentService = AttachmentService(service: service)
+        
+        self.backgroundContext = container.newBackgroundContext()
+        self.dbService = DBService(context: self.backgroundContext)
+        
+        self.viewContext = container.viewContext
+        setupNotificationHandlers()
 
-        requestSerialQueue.async {
-            self.shouldPerformFullSync(then: {
-                self.requestSerialQueue.async {
-                    self.fullSync(withMaxResults: 20)
-                }
-            })
+        check()
+    }
+}
+
+extension SyncService {
+    private func setupNotificationHandlers() {
+        let notification = NSManagedObjectContext.didSaveObjectsNotification
+        NotificationCenter.default.addObserver(self, selector: #selector(didSave), name: notification, object: nil)
+        viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        viewContext.automaticallyMergesChangesFromParent = true
+    }
+    
+    @objc private func didSave (_ notification: Notification) {
+        print("DIDSAVENOTIF")
+        self.viewContext.perform {
+            self.viewContext.mergeChanges(fromContextDidSave: notification)
         }
     }
 }
@@ -57,14 +75,21 @@ extension SyncService {
 // MARK: Fetch Labels
 
 extension SyncService {
-    func listLabels(completionHandler: @escaping (GMailAPIService.Resource.Label.ListResponse?) -> Void) {
+    private func fetchLabels(completionHandler: @escaping () -> ()) {
         let path: GMailAPIService.Method.Path = .labels(.list)
         let method = GMailAPIService.Method(pathParameters: path, queryParameters: nil)
-
-        service.executeMethod(method, completionHandler: {
-            (labelListResponse: GMailAPIService.Resource.Label.ListResponse?) in
-            completionHandler(labelListResponse)
-        })
+        service.executeMethod(method) {
+            (listResponseOptional: GMailAPIService.Resource.Label.ListResponse?) in
+            guard let listResponse = listResponseOptional else {
+                NSLog("Unable to list labels")
+                return
+            }
+            listResponse.labels.forEach {
+                self.dbService.store(label: $0)
+            }
+            self.dbService.saveOrRollback()
+            completionHandler()
+        }
     }
 }
 
@@ -98,14 +123,21 @@ extension SyncService {
     }
 
     func partialSync(completionHandler: @escaping Handler<HistoryResponse>) {
+        let didStartNotification = Notification(name: .partialSyncDidStart)
+        NotificationCenter.default.post(didStartNotification)
+        let didEndNotification = Notification(name: .partialSyncDidEnd)
+        
         guard let startHistoryId = latestHistoryId else {
             completionHandler(.failure(.fullSyncNotPerformed))
             NSLog("Latest historyId not fetched or was evicted")
+            NotificationCenter.default.post(didEndNotification)
             return
         }
         listHistory(withStartHistoryId: startHistoryId, withHistoryType: nil) {
             historyListResponseOptional in
-
+            defer {
+                NotificationCenter.default.post(didEndNotification)
+            }
             guard let historyListResponse = historyListResponseOptional else {
                 completionHandler(.failure(.unableToPartialSync))
                 return
@@ -134,7 +166,7 @@ extension SyncService {
                 }
             }
             group.notify(queue: DispatchQueue.global()) {
-                self.dbService.save()
+                self.dbService.saveOrRollback()
                 self.latestHistoryId = historyListResponse.historyId
                 completionHandler(.success(.catchUp))
             }
@@ -201,9 +233,29 @@ extension SyncService {
     }
 }
 
+extension Notification.Name {
+    static var partialSyncDidStart: Notification.Name {
+        return .init(rawValue: #function)
+    }
+    
+    static var partialSyncDidEnd: Notification.Name {
+        return .init(rawValue: #function)
+    }
+}
+
 // MARK: Full Sync
 
 extension SyncService {
+    
+    private func check() {
+        requestSerialQueue.async {
+            self.shouldPerformFullSync(then: {
+                self.requestSerialQueue.async {
+                    self.fullSync(withMaxResults: 20)
+                }
+            })
+        }
+    }
     
     private func shouldPerformFullSync(then completionHandler: () -> Void) {
         if let state = dbService.getState() {
@@ -216,8 +268,7 @@ extension SyncService {
     private func fullSync(withMaxResults maxResults: Int) {
         let group = DispatchGroup()
         group.enter()
-        fetchLabels {
-            _ in
+        fetchLabels () {
             group.enter()
             self.loadProfile {
                 profile in
@@ -244,7 +295,7 @@ extension SyncService {
             group.leave()
         }
         group.notify(queue: DispatchQueue.global(), execute: {
-            self.dbService.save()
+            self.dbService.saveOrRollback()
             print("Hit save")
         })
     }
@@ -265,24 +316,6 @@ extension SyncService {
             (profile: Profile?) in
             completionHandler(profile)
         })
-    }
-}
-
-extension SyncService {
-    private func fetchLabels(completionHandler: @escaping ([String]) -> Void) {
-        listLabels {
-            labelListResponse in
-            guard let labels = labelListResponse?.labels else {
-                NSLog("Unable to list labels")
-                return
-            }
-            var labelIds = [String]()
-            labels.forEach {
-                labelIds.append($0.id)
-                self.dbService.store(label: $0)
-            }
-            completionHandler(labelIds)
-        }
     }
 }
 

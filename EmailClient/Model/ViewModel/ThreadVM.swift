@@ -18,7 +18,9 @@ extension ViewModel {
         }
 
         init(id: String, messages: [ViewModel.Message], date: Date) {
-            self.messages = messages
+            self.messages = messages.sorted { (m1, m2) -> Bool in
+                m1.date < m2.date
+            }
             self.date = date
             self.id = id
         }

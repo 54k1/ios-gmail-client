@@ -16,7 +16,10 @@ public extension LabelMO {
 
     @NSManaged var id: String
     @NSManaged var name: String
+    @NSManaged var color: String?
     @NSManaged var nextPageToken: String?
+    @NSManaged var shouldHideLabel: Bool
+    @NSManaged var isSystemLabel: Bool
     @NSManaged var messages: NSSet
 }
 

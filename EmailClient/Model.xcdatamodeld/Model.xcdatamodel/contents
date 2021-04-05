@@ -16,9 +16,12 @@
         </uniquenessConstraints>
     </entity>
     <entity name="Label" representedClassName=".LabelMO" syncable="YES">
+        <attribute name="color" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
+        <attribute name="isSystemLabel" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="nextPageToken" optional="YES" attributeType="String"/>
+        <attribute name="shouldHideLabel" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <relationship name="messages" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Message" inverseName="labels" inverseEntity="Message"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
@@ -43,14 +46,9 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
-    <entity name="State" representedClassName="StateMO" syncable="YES">
-        <attribute name="id" attributeType="String" defaultValueString="id"/>
+    <entity name="State" representedClassName=".StateMO" syncable="YES">
+        <attribute name="lastUpdated" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="latestHistoryId" attributeType="String"/>
-        <uniquenessConstraints>
-            <uniquenessConstraint>
-                <constraint value="id"/>
-            </uniquenessConstraint>
-        </uniquenessConstraints>
     </entity>
     <entity name="Thread" representedClassName=".ThreadMO" syncable="YES">
         <attribute name="id" attributeType="String"/>
@@ -64,7 +62,7 @@
     </entity>
     <elements>
         <element name="Attachment" positionX="0" positionY="0" width="128" height="134"/>
-        <element name="Label" positionX="0" positionY="0" width="128" height="89"/>
+        <element name="Label" positionX="0" positionY="0" width="128" height="134"/>
         <element name="Message" positionX="0" positionY="0" width="128" height="179"/>
         <element name="State" positionX="9" positionY="81" width="128" height="59"/>
         <element name="Thread" positionX="0" positionY="0" width="128" height="74"/>

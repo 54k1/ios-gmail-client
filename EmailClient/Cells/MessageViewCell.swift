@@ -52,7 +52,7 @@ private enum Constants {
 extension MessageViewCell {
     private func setupViews() {
         stackView.axis = .vertical
-        webView.scrollView.isScrollEnabled = false
+        webView.scrollView.isScrollEnabled = true
         webView.navigationDelegate = self
 
         stackView.addArrangedSubview(headerView)

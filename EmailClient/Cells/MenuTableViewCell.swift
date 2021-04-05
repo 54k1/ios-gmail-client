@@ -7,11 +7,15 @@
 
 import UIKit
 
+protocol ReusableCell where Self: UITableViewCell {
+    static var reuseIdentifier: String { get }
+}
+
 class MenuTableViewCell: UITableViewCell {
     static let identifier = "MenuTableViewCell"
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        super.init(style: .value1, reuseIdentifier: reuseIdentifier)
     }
 
     @available(*, unavailable)
@@ -23,5 +27,11 @@ class MenuTableViewCell: UITableViewCell {
         imageView?.image = image
         imageView?.contentMode = .scaleAspectFit
         textLabel?.text = labelText
+    }
+}
+
+extension MenuTableViewCell: ReusableCell {
+    static var reuseIdentifier: String {
+        Self.identifier
     }
 }

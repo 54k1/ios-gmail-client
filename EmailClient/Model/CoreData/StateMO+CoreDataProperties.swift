@@ -15,7 +15,7 @@ public extension StateMO {
     }
 
     @NSManaged var latestHistoryId: String
-    @NSManaged var id: String
+    @NSManaged var lastUpdated: Date
 }
 
 extension StateMO: Identifiable {}

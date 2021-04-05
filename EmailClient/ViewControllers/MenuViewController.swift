@@ -5,11 +5,229 @@
 //  Created by SV on 19/02/21.
 //
 
-import GoogleSignIn
 import UIKit
+import CoreData
+import GoogleSignIn
 
-public extension UIImage {
-    convenience init?(color: UIColor, size: CGSize = CGSize(width: 1, height: 1)) {
+fileprivate enum MenuItem {
+    case label(id: String, name: String)
+    case other(name: String)
+
+    var displayName: String {
+        switch self {
+        case let .label(_, name):
+            return name
+        case let .other(name):
+            return name
+        }
+    }
+}
+
+final class MenuViewController: UIViewController {
+    weak var labelSelectionDelegate: LabelSelectionDelegate?
+    private let systemLabelSection = 0, userLabelSection = 1
+
+    private var vcOf = [String: FolderViewController]()
+
+    private let tableView = UITableView(frame: .zero, style: .plain)
+    let service: SyncService
+    
+    init(service: SyncService) {
+        self.service = service
+        super.init(nibName: nil, bundle: nil)
+
+        setupStaticViewControllers()
+        setupFRC()
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupViews()
+    }
+    
+    // MARK: Private
+    var frc: NSFetchedResultsController<LabelMO>! = nil
+}
+
+extension MenuViewController {
+    private func setupFRC() {
+        let request = LabelMO.userLabelFetchRequest
+        request.returnsObjectsAsFaults = false
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        frc = NSFetchedResultsController<LabelMO>(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        frc.delegate = self
+        try! frc.performFetch()
+        configureUserLabels(frc.fetchedObjects!)
+    }
+    
+    private func configureUserLabels(_ labels: [LabelMO]) {
+        for label in labels {
+            menuSections[userLabelSection].append(.label(id: label.id, name: label.name))
+            guard let color = label.color, let colour = UIColor(hex: color) else { continue }
+            imageForLabelId[label.id] = UIImage(color: colour)
+        }
+    }
+}
+
+extension MenuViewController: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        configureUserLabels(frc.fetchedObjects!)
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
+    }
+}
+
+extension MenuViewController {
+    private func setupStaticViewControllers() {
+        for menuItem in menuSections[systemLabelSection] {
+            if case let .label(id, name) = menuItem {
+                vcOf[id] = FolderViewController(service: service, label: (id: id, name: name))
+            }
+        }
+    }
+
+    var primaryViewController: FolderViewController {
+        vcOf["INBOX"]!
+    }
+}
+
+private extension MenuViewController {
+    private func setupViews() {
+        setupTableView()
+        setupNavigationBar()
+        view.backgroundColor = .white
+    }
+
+    private func setupTableView() {
+        tableView.register(MenuTableViewCell.self, forCellReuseIdentifier: MenuTableViewCell.identifier)
+        tableView.tableFooterView = UIView()
+        view.addSubview(tableView)
+        (tableView.delegate, tableView.dataSource) = (self, self)
+        tableView.embed(inSafeAreaOf: view)
+    }
+    
+    private func setupNavigationBar() {
+        navigationController?.navigationBar.isTranslucent = true
+        navigationController?.navigationBar.prefersLargeTitles = true
+        title = "Menu"
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
+    }
+}
+
+
+fileprivate var menuSections: [[MenuItem]] = [
+    // System
+    [
+        .label(id: "INBOX", name: "inbox"),
+        .label(id: "SENT", name: "sent"),
+        .label(id: "STARRED", name: "starred"),
+        .label(id: "DRAFT", name: "draft"),
+        .label(id: "TRASH", name: "trash"),
+    ],
+    [], // User
+    [.other(name: "signout")],
+]
+
+fileprivate var imageForLabelId: [String: UIImage] = [
+    "INBOX": UIImage(systemName: "envelope")!,
+    "SENT": UIImage(systemName: "hand.point.right")!,
+    "STARRED": UIImage(systemName: "star")!,
+    "DRAFT": UIImage(systemName: "pencil.and.ellipsis.rectangle")!,
+    "TRASH": UIImage(systemName: "trash")!,
+]
+
+extension MenuViewController: UITableViewDataSource {
+    func numberOfSections(in _: UITableView) -> Int {
+        menuSections.count
+    }
+
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
+        menuSections[section].count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: MenuTableViewCell.identifier, for: indexPath) as! MenuTableViewCell
+        switch menuSections[indexPath.section][indexPath.row] {
+        case let .label(id, _):
+            if let image = imageForLabelId[id] {
+                cell.configure(withLabelText: menuSections[indexPath.section][indexPath.row].displayName.capitalized, withImage: image)
+            } else {
+                cell.configure(withLabelText: menuSections[indexPath.section][indexPath.row].displayName.capitalized, withImage: UIImage(color: .systemPink, size: CGSize(width: 10, height: 10))!)
+            }
+        // let image = UIImage(color: .systemRed, size: CGSize(width: 10, height: 10))!
+        case let .other(label):
+            cell.configure(withLabelText: label)
+        }
+
+        return cell
+    }
+}
+
+extension MenuViewController: UITableViewDelegate {
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let item = menuSections[indexPath.section][indexPath.row]
+        switch item {
+        case let .label(id, name):
+            guard let vc = vcOf[id] else {
+                NSLog("ViewController for label(id: \(id), name: \(name)) does not exist")
+                return
+            }
+            labelSelectionDelegate?.didSelect(label: (id: id, name: name), withVC: vc)
+        case let .other(name):
+            switch name {
+            case "signout":
+                GIDSignIn.sharedInstance()?.signOut()
+                dismiss(animated: true, completion: nil)
+            // navigationController?.popViewController(animated: true)
+            default:
+                fatalError("Unknown operation '\(name)'")
+            }
+        }
+    }
+
+    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if section == userLabelSection {
+            // user labels
+            let view = UILabel()
+            view.text = "User labels"
+            return view
+        }
+        return nil
+    }
+
+    func tableView(_: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if section == userLabelSection {
+            return 20
+        } else {
+            return 0
+        }
+    }
+
+    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
+        UITableView.automaticDimension
+    }
+}
+
+extension MenuViewController {
+    @objc func clickComposeMail() {
+        // print("click compose mail")
+        navigationController?.pushViewController(ComposeViewController(), animated: true)
+    }
+}
+
+protocol LabelSelectionDelegate: class {
+    func didSelect(label: (id: String, name: String), withVC vc: FolderViewController)
+}
+
+private extension UIImage {
+    convenience init?(color: UIColor, size: CGSize = CGSize(width: 10, height: 10)) {
         let rect = CGRect(origin: .zero, size: size)
         UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
         color.setFill()
@@ -66,254 +284,4 @@ extension UIColor {
             return nil
         }
     }
-}
-
-class MenuViewController: UIViewController {
-    static let storyboardID = "MenuViewController"
-    static let navigationControllerStoryboardID = "MenuViewNavigationController"
-
-    enum MenuItem {
-        case label(id: String, name: String)
-        case other(name: String)
-
-        var displayName: String {
-            switch self {
-            case let .label(_, name):
-                return name
-            case let .other(name):
-                return name
-            }
-        }
-    }
-
-    private var menuSections: [[MenuItem]] = [
-        // System
-        [
-            .label(id: "INBOX", name: "inbox"),
-            .label(id: "SENT", name: "sent"),
-            .label(id: "STARRED", name: "starred"),
-            .label(id: "DRAFT", name: "draft"),
-            .label(id: "TRASH", name: "trash"),
-        ],
-        [], // User
-        [.other(name: "signout")],
-    ]
-
-    private var imageForLabelId: [String: UIImage] = [
-        "INBOX": UIImage(systemName: "envelope")!,
-        "SENT": UIImage(systemName: "hand.point.right")!,
-        "STARRED": UIImage(systemName: "star")!,
-        "DRAFT": UIImage(systemName: "pencil.and.ellipsis.rectangle")!,
-        "TRASH": UIImage(systemName: "trash")!,
-    ]
-
-    weak var labelSelectionDelegate: LabelSelectionDelegate?
-    // private var folderViewController = FolderViewController()
-    private var uuidOf = [String: UUID]()
-    private var labelShouldFullSync = [UUID: Bool]()
-    private let systemLabelSection = 0
-    private let userLabelSection = 1
-
-    private var vcOf = [String: FolderViewController]()
-
-    private let tableView: UITableView = {
-        let view = UITableView(frame: .zero, style: .insetGrouped)
-        view.register(MenuTableViewCell.self, forCellReuseIdentifier: MenuTableViewCell.identifier)
-        view.tableFooterView = UIView()
-        return view
-    }()
-
-    let service: SyncService
-    init(service: SyncService) {
-        self.service = service
-        super.init(nibName: nil, bundle: nil)
-
-        setupStaticViewControllers()
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupNavigationBar()
-        setupViews()
-        setupLabels()
-    }
-}
-
-extension MenuViewController {
-    private func setupStaticViewControllers() {
-        for menuItem in menuSections[systemLabelSection] {
-            if case let .label(id, name) = menuItem {
-                vcOf[id] = FolderViewController(service: service, label: (id: id, name: name))
-            }
-        }
-    }
-
-    var primaryViewController: FolderViewController {
-        vcOf["INBOX"]!
-    }
-}
-
-extension MenuViewController {
-    private func setupNavigationBar() {
-        // navigationController?.navigationBar.isHidden = false
-        title = "Menu"
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
-    }
-}
-
-extension MenuViewController {
-    private func setupViews() {
-        setupTableView()
-        view.backgroundColor = .white
-    }
-
-    private func setupTableView() {
-        view.addSubview(tableView)
-        (tableView.delegate, tableView.dataSource) = (self, self)
-        tableView.embed(inSafeAreaOf: view)
-    }
-}
-
-extension MenuViewController {
-    private func setupLabels() {
-        service.listLabels {
-            labelListResponse in
-            guard let labels = labelListResponse?.labels else {
-                NSLog("Unable to fetch labels")
-                return
-            }
-
-            for label in labels {
-                guard case .user = label.type else {
-                    continue
-                }
-                self.menuSections[self.userLabelSection].append(.label(id: label.id, name: label.name))
-                if let labelBackgroundColor = label.color?.backgroundColor {
-                    let color = UIColor(hex: labelBackgroundColor)!
-                    self.imageForLabelId[label.id] = UIImage(color: color, size: CGSize(width: 10, height: 10))
-                }
-            }
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-            }
-        }
-//        Model.shared.fetchLabels {
-//            labelsListResponse in
-//            for label in labelsListResponse.labels {
-//                guard case .user = label.type else {
-//                    continue
-//                }
-//                self.menuSections[self.userLabelSection].append(.label(id: label.id, name: label.name))
-//                if let labelBackgroundColor = label.color?.backgroundColor {
-//                    let color = UIColor(hex: labelBackgroundColor)!
-//                    self.imageForLabelId[label.id] = UIImage(color: color, size: CGSize(width: 10, height: 10))
-//                }
-//            }
-//            DispatchQueue.main.async {
-//                self.tableView.reloadData()
-//            }
-//        }
-    }
-}
-
-extension MenuViewController: UITableViewDataSource {
-    func numberOfSections(in _: UITableView) -> Int {
-        menuSections.count
-    }
-
-    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
-        menuSections[section].count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: MenuTableViewCell.identifier, for: indexPath) as! MenuTableViewCell
-        switch menuSections[indexPath.section][indexPath.row] {
-        case let .label(id, _):
-            if let image = imageForLabelId[id] {
-                cell.configure(withLabelText: menuSections[indexPath.section][indexPath.row].displayName.capitalized, withImage: image)
-            } else {
-                cell.configure(withLabelText: menuSections[indexPath.section][indexPath.row].displayName.capitalized, withImage: UIImage(color: .systemPink, size: CGSize(width: 10, height: 10))!)
-            }
-        // let image = UIImage(color: .systemRed, size: CGSize(width: 10, height: 10))!
-        case let .other(label):
-            cell.configure(withLabelText: label)
-        }
-
-        return cell
-    }
-}
-
-extension MenuViewController: UITableViewDelegate {
-    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = menuSections[indexPath.section][indexPath.row]
-        switch item {
-        case let .label(id, name):
-            // print(item)
-            // folderViewController.label = (id, name)
-            // folderViewController.title = name.capitalized
-            // if let uuid = uuidOf[id] {
-            //     // If context already registered, simply change it
-            //     Model.shared.changeContext(toUUID: uuid)
-            // } else {
-            //     // Else register new Context and store obtained UUID
-            //     let uuid = Model.shared.registerContext(withLabelIds: [id])
-            //     uuidOf[id] = uuid
-            //     Model.shared.changeContext(toUUID: uuid)
-            //     // folderViewController.performInitialFullSync()
-            // }
-            guard let vc = vcOf[id] else {
-                NSLog("ViewController for label(id: \(id), name: \(name)) does not exist")
-                return
-            }
-            labelSelectionDelegate?.didSelect(label: (id: id, name: name), withVC: vc)
-        // navigationController?.pushViewController(folderViewController, animated: true)
-        case let .other(name):
-            switch name {
-            case "signout":
-                GIDSignIn.sharedInstance()?.signOut()
-                dismiss(animated: true, completion: nil)
-            // navigationController?.popViewController(animated: true)
-            default:
-                fatalError("Unknown operation '\(name)'")
-            }
-        }
-    }
-
-    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if section == userLabelSection {
-            // user labels
-            let view = UILabel()
-            view.text = "User labels"
-            return view
-        }
-        return nil
-    }
-
-    func tableView(_: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if section == userLabelSection {
-            return 20
-        } else {
-            return 0
-        }
-    }
-
-    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
-        UITableView.automaticDimension
-    }
-}
-
-extension MenuViewController {
-    @objc func clickComposeMail() {
-        // print("click compose mail")
-        navigationController?.pushViewController(ComposeViewController(), animated: true)
-    }
-}
-
-protocol LabelSelectionDelegate: class {
-    func didSelect(label: (id: String, name: String), withVC vc: FolderViewController)
 }

@@ -22,6 +22,7 @@ class FolderViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
 
         setupDataSource()
+        registerNotificationObservers()
     }
 
     @available(*, unavailable)
@@ -32,7 +33,6 @@ class FolderViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        title = label.name.capitalized
         setupViews()
     }
 
@@ -41,18 +41,28 @@ class FolderViewController: UIViewController {
     private var label: (id: String, name: String)
     private let service: SyncService
     private var dataSource: TableViewDataSource<FolderViewController, ThreadMO>!
+    private var syncHappening = false
     
     weak var threadSelectionDelegate: ThreadSelectionDelegate?
 }
 
+
 // MARK: Setup DataSource
 
 extension FolderViewController {
+    
     private func setupDataSource() {
-        let request = ThreadMO.sortedFetchRequest
         let moc = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        let frc = NSFetchedResultsController(fetchRequest: request, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
+        let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
         dataSource = TableViewDataSource(tableView: tableView, delegate: self, frc: frc)
+    }
+    
+    private var fetchRequest: NSFetchRequest<ThreadMO> {
+        let moc = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let request = ThreadMO.fetchRequestForLabel(withId: label.id, context: moc)
+        request.returnsObjectsAsFaults = false
+        request.fetchBatchSize = 20
+        return request
     }
 }
 
@@ -62,7 +72,15 @@ extension FolderViewController {
     private func setupViews() {
         setupTableView()
         setupRefreshControl()
+        setupNavigationBar()
         view.backgroundColor = .white
+    }
+    
+    private func setupNavigationBar() {
+        title = label.name.capitalized
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(partialSync))
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.largeContentTitle = label.name.capitalized
     }
 
     private func setupRefreshControl() {
@@ -76,7 +94,28 @@ extension FolderViewController {
         tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
         tableView.dataSource = dataSource
-        tableView.refreshControl = refreshControl
+    }
+}
+
+// MARK: Busy UI
+
+extension FolderViewController {
+    private func registerNotificationObservers() {
+        // Busy UI to prevent multiple reloads
+        NotificationCenter.default.addObserver(self, selector: #selector(enterBusyUI), name: .partialSyncDidStart, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(exitBusyUI), name: .partialSyncDidEnd, object: nil)
+        
+    }
+    
+    @objc private func enterBusyUI() {
+        DispatchQueue.main.async {
+            self.navigationItem.rightBarButtonItem?.isEnabled = false
+        }
+    }
+    @objc private func exitBusyUI() {
+        DispatchQueue.main.async {
+            self.navigationItem.rightBarButtonItem?.isEnabled = true
+        }
     }
 }
 
@@ -102,10 +141,14 @@ extension FolderViewController: UITableViewDelegate {
 
 extension FolderViewController {
     @objc private func partialSync() {
+        guard !syncHappening else { return }
+        syncHappening = true
         service.partialSync(completionHandler: {
-            [weak self] _ in
+            [weak self] response in
+            print(response)
             DispatchQueue.main.async {
                 self?.refreshControl.endRefreshing()
+                self?.syncHappening = false
             }
         })
     }

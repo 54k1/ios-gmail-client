@@ -62,7 +62,7 @@ private let dateFormatter: DateFormatter = {
 
 extension ThreadTableViewCell {
     func configure(with threadVM: ViewModel.Thread) {
-        detailTextLabel?.text = threadVM.messages.first?.snippet
+        detailTextLabel?.text = threadVM.messages.last?.snippet
         textLabel?.text = threadVM.messages.first?.from.name
         imageView?.image = UIImage(systemName: "person.circle")
         if let date = threadVM.messages.first?.date {
@@ -91,5 +91,11 @@ extension ThreadTableViewCell {
 
     func stopLoading() {
         activityIndicator.stopAnimating()
+    }
+}
+
+extension ThreadTableViewCell: ReusableCell {
+    static var reuseIdentifier: String {
+        Self.identifier
     }
 }

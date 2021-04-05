@@ -12,12 +12,7 @@ class SplitViewController: UISplitViewController {
     let service: SyncService
     init(authorizationValue: String) {
         let persistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
-        let context = persistentContainer.viewContext
-        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        context.automaticallyMergesChangesFromParent = true
-        let ctx = persistentContainer.newBackgroundContext()
-        ctx.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        service = SyncService(authorizationValue: authorizationValue, context: ctx)
+        service = SyncService(authorizationValue: authorizationValue, container: persistentContainer)
         super.init(style: .tripleColumn)
         setupViewControllers()
     }
