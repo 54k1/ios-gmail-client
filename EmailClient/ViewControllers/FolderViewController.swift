@@ -10,9 +10,8 @@ import GoogleSignIn
 import UIKit
 
 class FolderViewController: UIViewController {
-    
     // MARK: SubViews
-    
+
     private let tableView = UITableView()
     private var refreshControl = UIRefreshControl()
 
@@ -21,6 +20,7 @@ class FolderViewController: UIViewController {
         self.label = label
         super.init(nibName: nil, bundle: nil)
 
+        setupTableView()
         setupDataSource()
         registerNotificationObservers()
     }
@@ -42,21 +42,19 @@ class FolderViewController: UIViewController {
     private let service: SyncService
     private var dataSource: TableViewDataSource<FolderViewController, ThreadMO>!
     private var syncHappening = false
-    
+
     weak var threadSelectionDelegate: ThreadSelectionDelegate?
 }
-
 
 // MARK: Setup DataSource
 
 extension FolderViewController {
-    
     private func setupDataSource() {
         let moc = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
         dataSource = TableViewDataSource(tableView: tableView, delegate: self, frc: frc)
     }
-    
+
     private var fetchRequest: NSFetchRequest<ThreadMO> {
         let moc = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         let request = ThreadMO.fetchRequestForLabel(withId: label.id, context: moc)
@@ -70,12 +68,13 @@ extension FolderViewController {
 
 extension FolderViewController {
     private func setupViews() {
-        setupTableView()
         setupRefreshControl()
         setupNavigationBar()
         view.backgroundColor = .white
+        view.addSubview(tableView)
+        tableView.embed(in: view.safeAreaLayoutGuide)
     }
-    
+
     private func setupNavigationBar() {
         title = label.name.capitalized
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(partialSync))
@@ -88,8 +87,6 @@ extension FolderViewController {
     }
 
     private func setupTableView() {
-        view.addSubview(tableView)
-        tableView.embed(in: view.safeAreaLayoutGuide)
         tableView.tableFooterView = UIView()
         tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
@@ -104,14 +101,14 @@ extension FolderViewController {
         // Busy UI to prevent multiple reloads
         NotificationCenter.default.addObserver(self, selector: #selector(enterBusyUI), name: .partialSyncDidStart, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(exitBusyUI), name: .partialSyncDidEnd, object: nil)
-        
     }
-    
+
     @objc private func enterBusyUI() {
         DispatchQueue.main.async {
             self.navigationItem.rightBarButtonItem?.isEnabled = false
         }
     }
+
     @objc private func exitBusyUI() {
         DispatchQueue.main.async {
             self.navigationItem.rightBarButtonItem?.isEnabled = true
@@ -128,8 +125,9 @@ extension FolderViewController: UITableViewDelegate {
             return
         }
 
-        let vm = ViewModel.Thread(from: thread)
-        threadSelectionDelegate?.didSelect(vm)
+        downloadAttachment(for: thread)
+        // let vm = ViewModel.Thread(from: thread)
+        threadSelectionDelegate?.didSelect(thread)
     }
 
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
@@ -155,13 +153,13 @@ extension FolderViewController {
 }
 
 protocol ThreadSelectionDelegate: class {
-    func didSelect(_ thread: ViewModel.Thread)
+    func didSelect(_ thread: ThreadMO)
 }
 
 extension FolderViewController: TableViewDataSourceDelegate {
     typealias Cell = ThreadTableViewCell
     typealias Object = ThreadMO
-    
+
     var cellReuseIdentifier: String {
         ThreadTableViewCell.identifier
     }
@@ -169,5 +167,18 @@ extension FolderViewController: TableViewDataSourceDelegate {
     func configure(_ cell: ThreadTableViewCell, with object: ThreadMO) {
         let threadVM = ViewModel.Thread(from: object)
         cell.configure(with: threadVM)
+    }
+}
+
+extension FolderViewController {
+    private func downloadAttachment(for thread: ThreadMO) {
+        for message in thread.messages.array {
+            let message = message as! MessageMO
+            for attachment in message.attachments!.allObjects {
+                let attachment = attachment as! AttachmentMO
+                guard attachment.location == nil else { return }
+                service.downloadAttachment(attachment)
+            }
+        }
     }
 }

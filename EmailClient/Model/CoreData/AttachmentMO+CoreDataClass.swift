@@ -12,13 +12,14 @@ import Foundation
 public class AttachmentMO: NSManagedObject {}
 
 extension AttachmentMO {
-    func configure(with attachmentMetaData: MessageComponentExtractor.AttachmentMetaData, messageMO: MessageMO) {
-        id = attachmentMetaData.id
-        messageId = attachmentMetaData.messageId
-        filename = attachmentMetaData.filename
-        location = nil
-        message = messageMO
+    convenience init(context: NSManagedObjectContext, metaData: MessageComponentExtractor.AttachmentMetaData) {
+        self.init(context: context)
+
         data = nil
+        location = nil
+        id = metaData.id
+        filename = metaData.filename
+        messageId = metaData.messageId
     }
 }
 

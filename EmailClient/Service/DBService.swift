@@ -83,7 +83,7 @@ extension DBService {
         let request: NSFetchRequest<LabelMO> = LabelMO.fetchRequest()
         let predicate = NSPredicate(format: "id like %@", labelId)
         request.predicate = predicate
-        var ret: LabelMO? = nil
+        var ret: LabelMO?
         context.performAndWait {
             do {
                 let labels = try context.fetch(request)
@@ -101,7 +101,8 @@ extension DBService {
         perform {
             _ = LabelMO(context: self.context, label: label)
         }
-    }}
+    }
+}
 
 extension DBService {
     func getState() -> StateMO? {
@@ -132,14 +133,14 @@ extension DBService {
             NSLog("Unable to fetch messageMO for attachment")
             return
         }
-        
+
         perform {
             let attachmentMO = AttachmentMO(context: self.context)
-        attachmentMO.id = attachmentId
-        attachmentMO.message = messageMO
-        attachmentMO.messageId = messageId
-        attachmentMO.location = location
-        attachmentMO.filename = filename
+            attachmentMO.id = attachmentId
+            attachmentMO.message = messageMO
+            attachmentMO.messageId = messageId
+            attachmentMO.location = location
+            attachmentMO.filename = filename
         }
     }
 
@@ -147,7 +148,7 @@ extension DBService {
         let predicate = NSPredicate(format: "SUBQUERY(attachments, $a, ANY $a.message.thread.id LIKE %@).@count > 0", threadId)
         let request: NSFetchRequest<AttachmentMO> = AttachmentMO.fetchRequest()
         request.predicate = predicate
-        
+
         perform {
             let attachments = try? self.context.fetch(request)
             if attachments == nil { callback([]) }
@@ -169,17 +170,17 @@ extension DBService {
             self._saveOrRollback()
         }
     }
-    
+
     private func _saveOrRollback() {
         do {
-            try self.context.save()
+            try context.save()
         } catch let err {
             print("SaveError: ", err)
             self.context.rollback()
         }
     }
-    
-    private func perform(block: @escaping () -> Void) {
+
+    func perform(block: @escaping () -> Void) {
         context.perform {
             block()
         }

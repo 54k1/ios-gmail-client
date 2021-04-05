@@ -5,11 +5,11 @@
 //  Created by SV on 19/02/21.
 //
 
-import UIKit
 import CoreData
 import GoogleSignIn
+import UIKit
 
-fileprivate enum MenuItem {
+private enum MenuItem {
     case label(id: String, name: String)
     case other(name: String)
 
@@ -31,7 +31,7 @@ final class MenuViewController: UIViewController {
 
     private let tableView = UITableView(frame: .zero, style: .plain)
     let service: SyncService
-    
+
     init(service: SyncService) {
         self.service = service
         super.init(nibName: nil, bundle: nil)
@@ -49,9 +49,10 @@ final class MenuViewController: UIViewController {
         super.viewDidLoad()
         setupViews()
     }
-    
+
     // MARK: Private
-    var frc: NSFetchedResultsController<LabelMO>! = nil
+
+    var frc: NSFetchedResultsController<LabelMO>!
 }
 
 extension MenuViewController {
@@ -64,7 +65,7 @@ extension MenuViewController {
         try! frc.performFetch()
         configureUserLabels(frc.fetchedObjects!)
     }
-    
+
     private func configureUserLabels(_ labels: [LabelMO]) {
         for label in labels {
             menuSections[userLabelSection].append(.label(id: label.id, name: label.name))
@@ -75,7 +76,7 @@ extension MenuViewController {
 }
 
 extension MenuViewController: NSFetchedResultsControllerDelegate {
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+    func controllerDidChangeContent(_: NSFetchedResultsController<NSFetchRequestResult>) {
         configureUserLabels(frc.fetchedObjects!)
         DispatchQueue.main.async {
             self.tableView.reloadData()
@@ -111,18 +112,17 @@ private extension MenuViewController {
         (tableView.delegate, tableView.dataSource) = (self, self)
         tableView.embed(inSafeAreaOf: view)
     }
-    
+
     private func setupNavigationBar() {
         navigationController?.navigationBar.isTranslucent = true
         navigationController?.navigationBar.prefersLargeTitles = true
         title = "Menu"
-        
+
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
     }
 }
 
-
-fileprivate var menuSections: [[MenuItem]] = [
+private var menuSections: [[MenuItem]] = [
     // System
     [
         .label(id: "INBOX", name: "inbox"),
@@ -135,7 +135,7 @@ fileprivate var menuSections: [[MenuItem]] = [
     [.other(name: "signout")],
 ]
 
-fileprivate var imageForLabelId: [String: UIImage] = [
+private var imageForLabelId: [String: UIImage] = [
     "INBOX": UIImage(systemName: "envelope")!,
     "SENT": UIImage(systemName: "hand.point.right")!,
     "STARRED": UIImage(systemName: "star")!,

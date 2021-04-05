@@ -25,8 +25,7 @@ extension MessageMO {
             html = extracted.html
             internalDate = extracted.date ?? Date()
             for attachment in extracted.attachments {
-                let attachmentMO = AttachmentMO(context: context)
-                attachmentMO.configure(with: attachment, messageMO: self)
+                let attachmentMO = AttachmentMO(context: context, metaData: attachment)
                 self.addToAttachments(attachmentMO)
             }
         } else {

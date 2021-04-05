@@ -10,7 +10,7 @@ import QuickLook
 import UIKit
 
 class AttachmentCollectionViewCell: UICollectionViewCell {
-    static let reuseIdentifier = "AttachmentCollectionViewCell"
+    static let identifier = "AttachmentCollectionViewCell"
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -64,7 +64,14 @@ extension AttachmentCollectionViewCell {
         if let data = attachmentVM.thumbnail {
             imageView.isHidden = false
             imageView.image = UIImage(data: data)
+
             activityIndicator.stopAnimating()
         }
+    }
+}
+
+extension AttachmentCollectionViewCell: ReuseableCell {
+    static var reuseIdentifier: String {
+        Self.identifier
     }
 }

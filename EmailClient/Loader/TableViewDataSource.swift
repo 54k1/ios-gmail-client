@@ -5,9 +5,9 @@
 //  Created by SV on 02/04/21.
 //
 
-import UIKit
 import CoreData
 import Foundation
+import UIKit
 
 protocol TableViewDataSourceDelegate {
     associatedtype Cell: ReusableCell
@@ -24,22 +24,21 @@ class TableViewDataSource<Delegate: TableViewDataSourceDelegate, Result: NSFetch
         self.frc = frc
         self.delegate = delegate
         self.tableView = tableView
-        
+
         super.init()
-        
+
         setupTableView()
         setupFRC()
     }
-    
+
     private func setupTableView() {
         tableView?.dataSource = self
     }
-    
+
     private func setupFRC() {
         frc.delegate = self
         NotificationCenter.default.addObserver(self, selector: #selector(refresh), name: NSManagedObjectContext.didSaveObjectsNotification, object: nil)
         try! frc.performFetch()
-        
     }
 
     // MARK: NSFetchedResultsControllerDelegate
@@ -47,23 +46,23 @@ class TableViewDataSource<Delegate: TableViewDataSourceDelegate, Result: NSFetch
     func controllerWillChangeContent(_: NSFetchedResultsController<NSFetchRequestResult>) {
         tableView?.beginUpdates()
     }
-    
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+
+    func controller(_: NSFetchedResultsController<NSFetchRequestResult>, didChange _: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         print("type=\(type)")
         switch type {
         case .insert:
-            guard let indexPath = newIndexPath else {fatalError("newIndexPath must not be nil")}
+            guard let indexPath = newIndexPath else { fatalError("newIndexPath must not be nil") }
             tableView?.insertRows(at: [indexPath], with: .automatic)
         case .move:
-            guard let indexPath = indexPath, let newIndexPath = newIndexPath else {fatalError("indexPath, newIndexPath must not be nil")}
+            guard let indexPath = indexPath, let newIndexPath = newIndexPath else { fatalError("indexPath, newIndexPath must not be nil") }
             tableView?.moveRow(at: indexPath, to: newIndexPath)
         case .delete:
-            guard let indexPath = indexPath else {fatalError("indexPath must not be nil")}
+            guard let indexPath = indexPath else { fatalError("indexPath must not be nil") }
             tableView?.deleteRows(at: [indexPath], with: .automatic)
         case .update:
             ()
-            // guard let indexPath = indexPath else {fatalError("indexPath must not be nil")}
-            // tableView?.cellForRow(at: indexPath)
+        // guard let indexPath = indexPath else {fatalError("indexPath must not be nil")}
+        // tableView?.cellForRow(at: indexPath)
         @unknown default:
             fatalError("Unknown NSFetchedResultsChangeType")
         }
@@ -75,9 +74,9 @@ class TableViewDataSource<Delegate: TableViewDataSourceDelegate, Result: NSFetch
 
     // MARK: UITableViewDataSource
 
-    func numberOfSections(in tableView: UITableView) -> Int { 1 }
-    
-    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func numberOfSections(in _: UITableView) -> Int { 1 }
+
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return frc.sections?[0].numberOfObjects ?? 0
     }
 
@@ -99,8 +98,7 @@ class TableViewDataSource<Delegate: TableViewDataSourceDelegate, Result: NSFetch
     private let delegate: Delegate
     private let frc: NSFetchedResultsController<Result>
     private weak var tableView: UITableView?
-    
-    
+
     @objc private func refresh() {
         try! frc.performFetch()
         DispatchQueue.main.async {

@@ -55,7 +55,7 @@ extension SplitViewController: LabelSelectionDelegate {
 }
 
 extension SplitViewController: ThreadSelectionDelegate {
-    func didSelect(_ thread: ViewModel.Thread) {
+    func didSelect(_ thread: ThreadMO) {
         guard let vc = viewController(for: .secondary) as? ThreadDetailViewController else {
             return
         }

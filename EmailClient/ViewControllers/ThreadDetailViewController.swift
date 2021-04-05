@@ -5,19 +5,17 @@
 //  Created by SV on 11/03/21.
 //
 
+import CoreData
 import UIKit
 import WebKit
-import CoreData
-import QuickLook
 
 class ThreadDetailViewController: UIViewController {
-    
     // MARK: SubViews
 
     private var tableView: UITableView!
     private var subjectHeader: UILabel!
     private var unselectedIndicatorLabel: UILabel!
-    
+
     init(service: SyncService) {
         self.service = service
         super.init(nibName: nil, bundle: nil)
@@ -41,8 +39,8 @@ class ThreadDetailViewController: UIViewController {
     private var selectedMessageIds = Set<String>()
     private var messages = [ViewModel.Message]()
     private var threadVM: ViewModel.Thread?
-    private var attachmentDataSource = [String: AttachmentViewDataSource<AttachmentMO, ThreadDetailViewController>]()
-    private let attachmentsLoader: AttachmentsLoader! = nil
+    private var threadMO: ThreadMO?
+    private var attachmentDataSource = [String: CollectionViewDataSource<AttachmentMO, ThreadDetailViewController>]()
 }
 
 // MARK: SetupViews
@@ -91,7 +89,7 @@ extension ThreadDetailViewController {
 // MARK: Configure
 
 extension ThreadDetailViewController {
-    func configure(with threadVM: ViewModel.Thread) {
+    private func configure(with threadVM: ViewModel.Thread) {
         self.threadVM = threadVM
         title = threadVM.messages.first?.subject
         subjectHeader.text = title
@@ -99,14 +97,20 @@ extension ThreadDetailViewController {
         tableView.reloadData()
     }
 
-    private func loadAttachments() {
-        service.downloadAttachments(for: threadVM!.id)
+    func configure(with threadMO: ThreadMO) {
+        let threadVM = ViewModel.Thread(from: threadMO)
+        self.threadMO = threadMO
+        configure(with: threadVM)
     }
 }
 
 extension ThreadDetailViewController: UITableViewDataSource {
+    func numberOfSections(in _: UITableView) -> Int {
+        threadMO?.messages.count ?? 0
+    }
+
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        threadVM?.messages.count ?? 0
+        1
     }
 
     func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -116,14 +120,14 @@ extension ThreadDetailViewController: UITableViewDataSource {
         // }
         let cell = MessageViewCell()
 
-        cell.configure(with: threadVM!.messages[indexPath.row])
+        cell.configure(with: threadVM!.messages[indexOfMessage(indexPath)])
 
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let messageId = threadVM!.messages[indexOfThread(withIndexPath: indexPath)].id
+        let messageId = threadVM!.messages[indexOfMessage(indexPath)].id
         guard let cell = tableView.cellForRow(at: indexPath) as? MessageViewCell else {
             NSLog("cellForRow(at:) returned nil")
             return
@@ -139,7 +143,7 @@ extension ThreadDetailViewController: UITableViewDataSource {
     }
 
     func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let messageId = threadVM!.messages[indexOfThread(withIndexPath: indexPath)].id
+        let messageId = threadVM!.messages[indexOfMessage(indexPath)].id
         if selectedMessageIds.contains(messageId), let height = heightForMessageWithId[messageId] {
             return height
         }
@@ -150,76 +154,64 @@ extension ThreadDetailViewController: UITableViewDataSource {
         10
     }
 
-    private func indexOfThread(withIndexPath indexPath: IndexPath) -> Int {
-        indexPath.row
+    private func indexOfMessage(_ indexPath: IndexPath) -> Int {
+        indexPath.section
     }
 }
 
 extension ThreadDetailViewController: UITableViewDelegate {
     func tableView(_: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        guard threadVM?.messages[section].attachments.count ?? 0 > 0, let messageId = threadVM?.messages[section].id else {
-            return nil
-        }
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        // collectionView.set(widthTo: tableView.widthAnchor).setConstant(height: 100)
-        collectionView.register(AttachmentCollectionViewCell.self, forCellWithReuseIdentifier: "cell")
-        let request = AttachmentMO.fetchRequest(for: messageId)
-        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        let frc = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
-        let dataSource = AttachmentViewDataSource(collectionView: collectionView, cellIdentifier: "cell", fetchedResultsController: frc, delegate: self)
-        attachmentDataSource[messageId] = dataSource
-        collectionView.dataSource = dataSource
-        collectionView.backgroundColor = .lightGray
+        let message = threadMO?.messages.array[section] as! MessageMO
+        guard message.attachments?.count ?? 0 > 0 else { return nil }
 
-        let view = UITableViewHeaderFooterView()
-        // view.setConstant(width: 100).setConstant(height: 100)
-        view.addSubview(collectionView)
-        collectionView.embed(in: view.safeAreaLayoutGuide)
-        return view
+        let messageId = message.id
+        let attachmentsView = AttachmentsView()
+        attachmentsView.tag = section
+        attachmentsView.collectionView.delegate = self
+
+        guard let dataSource = attachmentDataSource[messageId] else {
+            let request = AttachmentMO.fetchRequest(for: messageId)
+            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+            let frc = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+            let dataSource = CollectionViewDataSource(collectionView: attachmentsView.collectionView, fetchedResultsController: frc, delegate: self)
+            attachmentsView.setCollectionViewDataSource(dataSource)
+            attachmentDataSource[messageId] = dataSource
+            return attachmentsView
+        }
+
+        attachmentsView.collectionView.dataSource = dataSource
+
+        return attachmentsView
     }
 
     func tableView(_: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         guard threadVM?.messages[section].attachments.count ?? 0 > 0 else {
             return 0
         }
-        return 100
+        return 130
     }
 }
 
 extension ThreadDetailViewController: ThreadSelectionDelegate {
-    func didSelect(_ thread: ViewModel.Thread) {
+    func didSelect(_ thread: ThreadMO) {
         configure(with: thread)
     }
 }
 
-extension ThreadDetailViewController: AttachmentViewDataSourceDelegate {
+extension ThreadDetailViewController: CollectionViewDataSourceDelegate {
     typealias Cell = AttachmentCollectionViewCell
     typealias Object = AttachmentMO
 
     func configure(_ cell: AttachmentCollectionViewCell, with object: AttachmentMO) {
         let attachmentVM = ViewModel.Attachment(from: object)
         cell.configure(with: attachmentVM)
-
-        guard object.location == nil else {
-            return
-        }
-        // Download attachment
     }
+}
 
-    private func downloadAttachment(withId attachmentId: String, withMessageId messageId: String) {
-        attachmentsLoader.downloadAttachment(withId: attachmentId, withMessageId: messageId) {
-            urlOptional in
-            guard let url = urlOptional else {
-                return
-            }
-            self.attachmentsLoader.generatePreviewThumbnail(forFileAt: url) {
-                imageOptional in
-                guard let image = imageOptional else {
-                    return
-                }
-            }
-        }
+extension ThreadDetailViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt _: IndexPath) {
+        let section = collectionView.tag
+        let vc = AttachmentPreviewController(message: threadMO!.messages[section] as! MessageMO)
+        navigationController?.pushViewController(vc, animated: true)
     }
 }

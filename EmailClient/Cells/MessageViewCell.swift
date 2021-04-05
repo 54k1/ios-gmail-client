@@ -97,7 +97,6 @@ extension MessageViewCell: WKNavigationDelegate {
         webView.evaluateJavaScript("document.body.scrollHeight", completionHandler: {
             result, _ in
             if let height = result as? CGFloat {
-                print("HEIGHHT=\(height)")
                 self.height = height + Constants.headerHeight + 30
             }
         })

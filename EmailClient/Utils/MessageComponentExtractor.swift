@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import GoogleAPIClientForREST
 
 class MessageComponentExtractor {
     typealias MessageResult = Result<Message, ExtractionError>
@@ -146,8 +147,10 @@ extension MessageComponentExtractor {
                 // Some attachment
                 return .success(AttachmentMetaData(id: attachmentId, messageId: messageId, filename: part.filename))
             } else if let data = body.data {
-                let stringData = data.fromBase64URL()!
-                return .success(Content(mimeType: part.mimeType, data: stringData))
+                // let stringData = data.fromBase64URL()!
+                let stringData = GTLRDecodeWebSafeBase64(data)!
+                let data = String(data: stringData, encoding: .utf8)!
+                return .success(Content(mimeType: part.mimeType, data: data))
             } else {
                 // TODO:
                 NSLog("")

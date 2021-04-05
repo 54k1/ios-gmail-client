@@ -14,7 +14,7 @@ protocol ReusableCell where Self: UITableViewCell {
 class MenuTableViewCell: UITableViewCell {
     static let identifier = "MenuTableViewCell"
 
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+    override init(style _: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .value1, reuseIdentifier: reuseIdentifier)
     }
 

@@ -15,24 +15,23 @@ final class SyncService {
     private let threadService: ThreadService
     private let messageService: MessageService
     private let attachmentService: AttachmentService
-    
 
     var latestHistoryId: String?
     private let requestSerialQueue = DispatchQueue(label: "request.queue")
-    
+
     private let viewContext, backgroundContext: NSManagedObjectContext
 
     init(authorizationValue: String, container: NSPersistentContainer) {
-        self.service = GMailAPIService(withAuthorizationValue: authorizationValue)
-        
-        self.threadService = ThreadService(service: service)
-        self.messageService = MessageService(service: service)
-        self.attachmentService = AttachmentService(service: service)
-        
-        self.backgroundContext = container.newBackgroundContext()
-        self.dbService = DBService(context: self.backgroundContext)
-        
-        self.viewContext = container.viewContext
+        service = GMailAPIService(withAuthorizationValue: authorizationValue)
+
+        threadService = ThreadService(service: service)
+        messageService = MessageService(service: service)
+        attachmentService = AttachmentService(service: service)
+
+        backgroundContext = container.newBackgroundContext()
+        dbService = DBService(context: backgroundContext)
+
+        viewContext = container.viewContext
         setupNotificationHandlers()
 
         check()
@@ -46,10 +45,10 @@ extension SyncService {
         viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         viewContext.automaticallyMergesChangesFromParent = true
     }
-    
-    @objc private func didSave (_ notification: Notification) {
+
+    @objc private func didSave(_ notification: Notification) {
         print("DIDSAVENOTIF")
-        self.viewContext.perform {
+        viewContext.perform {
             self.viewContext.mergeChanges(fromContextDidSave: notification)
         }
     }
@@ -75,7 +74,7 @@ extension SyncService {
 // MARK: Fetch Labels
 
 extension SyncService {
-    private func fetchLabels(completionHandler: @escaping () -> ()) {
+    private func fetchLabels(completionHandler: @escaping () -> Void) {
         let path: GMailAPIService.Method.Path = .labels(.list)
         let method = GMailAPIService.Method(pathParameters: path, queryParameters: nil)
         service.executeMethod(method) {
@@ -116,7 +115,6 @@ extension SyncService {
 // MARK: Partial Sync
 
 extension SyncService {
-
     enum HistoryResponse {
         case upToDate
         case catchUp
@@ -126,7 +124,7 @@ extension SyncService {
         let didStartNotification = Notification(name: .partialSyncDidStart)
         NotificationCenter.default.post(didStartNotification)
         let didEndNotification = Notification(name: .partialSyncDidEnd)
-        
+
         guard let startHistoryId = latestHistoryId else {
             completionHandler(.failure(.fullSyncNotPerformed))
             NSLog("Latest historyId not fetched or was evicted")
@@ -237,7 +235,7 @@ extension Notification.Name {
     static var partialSyncDidStart: Notification.Name {
         return .init(rawValue: #function)
     }
-    
+
     static var partialSyncDidEnd: Notification.Name {
         return .init(rawValue: #function)
     }
@@ -246,7 +244,6 @@ extension Notification.Name {
 // MARK: Full Sync
 
 extension SyncService {
-    
     private func check() {
         requestSerialQueue.async {
             self.shouldPerformFullSync(then: {
@@ -256,7 +253,7 @@ extension SyncService {
             })
         }
     }
-    
+
     private func shouldPerformFullSync(then completionHandler: () -> Void) {
         if let state = dbService.getState() {
             latestHistoryId = state.latestHistoryId
@@ -268,7 +265,7 @@ extension SyncService {
     private func fullSync(withMaxResults maxResults: Int) {
         let group = DispatchGroup()
         group.enter()
-        fetchLabels () {
+        fetchLabels {
             group.enter()
             self.loadProfile {
                 profile in
@@ -322,58 +319,25 @@ extension SyncService {
 // MARK: Attachments
 
 extension SyncService {
-    public func downloadAttachments(for threadId: String) {
-        let group = DispatchGroup()
-        dbService.getAttachments(for: threadId) {
-            attachments in
-            attachments.forEach {
-                attachment in
-                guard attachment.location == nil else {
-                    // Already present
-                    return
+    public func downloadAttachment(_ attachment: AttachmentMO) {
+        attachmentService.fetchAttachmentContents(attachment: attachment) {
+            url in
+            guard let url = url else { return }
+
+            let request = QLThumbnailGenerator.Request(fileAt: url, size: CGSize(width: 100, height: 100), scale: 1.0, representationTypes: .all)
+
+            var thumbnail: Data?
+            QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { rep, err in
+                thumbnail = rep?.uiImage.pngData()
+                if let err = err {
+                    print("Thumbnail Generation Error: ", err)
                 }
-                self.downloadAttachment(withId: attachment.id, withMessageId: attachment.messageId, completionHandler: {
-                    url in
-                    guard let url = url else { return }
-
+                self.dbService.perform {
                     attachment.location = url.absoluteString
-                    self.generatePreviewThumbnail(forFileAt: url) {
-                        image in
-                        guard let image = image else { return }
-                        attachment.thumbnail = image.pngData()
-                    }
-                })
+                    attachment.thumbnail = thumbnail
+                }
+                self.dbService.saveOrRollback()
             }
-        }
-    }
-
-    private func downloadAttachment(withId attachmentId: String, withMessageId messageId: String, completionHandler: @escaping (URL?) -> Void) {
-        attachmentService.fetchAttachmentContents(withId: attachmentId, withMessageId: messageId, completionHandler: {
-            dataOptional in
-            guard let data = dataOptional else {
-                completionHandler(nil)
-                return
-            }
-            let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(attachmentId + messageId)
-            do {
-                try data.write(to: url)
-                completionHandler(url)
-            } catch {
-                completionHandler(nil)
-            }
-        })
-    }
-
-    private func generatePreviewThumbnail(forFileAt url: URL, callback: @escaping (UIImage?) -> Void) {
-        let size = CGSize(width: 300, height: 300)
-        let request = QLThumbnailGenerator.Request(fileAt: url, size: size, scale: 0.7, representationTypes: .all)
-        QLThumbnailGenerator.shared.generateBestRepresentation(for: request) {
-            rep, err in
-            guard err == nil, let rep = rep else {
-                callback(nil)
-                return
-            }
-            callback(rep.uiImage)
         }
     }
 }

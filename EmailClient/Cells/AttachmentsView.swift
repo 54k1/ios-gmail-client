@@ -13,7 +13,35 @@ class AttachmentsView: UITableViewHeaderFooterView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    init() {
+        super.init(reuseIdentifier: nil)
+        setupCollectionView()
+    }
+
     // MARK: Private
 
-    private let collectionView: UICollectionView
+    let collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.itemSize = CGSize(width: 100, height: 100)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(AttachmentCollectionViewCell.self, forCellWithReuseIdentifier: AttachmentCollectionViewCell.reuseIdentifier)
+        return collectionView
+    }()
+}
+
+extension AttachmentsView {
+    func setCollectionViewDataSource(_ dataSource: UICollectionViewDataSource) {
+        collectionView.dataSource = dataSource
+    }
+}
+
+extension AttachmentsView {
+    func setupCollectionView() {
+        contentView.addSubview(collectionView)
+        collectionView.embed(in: contentView.safeAreaLayoutGuide)
+
+        contentView.backgroundColor = .white
+        collectionView.backgroundColor = .white
+    }
 }

@@ -38,8 +38,8 @@ extension ThreadMO: Managed {
     }
 }
 
-extension ThreadMO {
-    public static func fetchRequestForLabel(withId labelId: String, context: NSManagedObjectContext) -> NSFetchRequest<ThreadMO> {
+public extension ThreadMO {
+    static func fetchRequestForLabel(withId labelId: String, context _: NSManagedObjectContext) -> NSFetchRequest<ThreadMO> {
         let request = Self.sortedFetchRequest as! NSFetchRequest<ThreadMO>
         request.predicate = NSPredicate(format: "SUBQUERY(messages, $m, ANY $m.labels.id LIKE %@).@count > 0", labelId)
         return request

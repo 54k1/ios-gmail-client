@@ -22,8 +22,8 @@ class ThreadService {
     }
 }
 
-
 // MARK: Handlers
+
 extension ThreadService {
     private func appendHandler(forThreadId threadId: String, _ handler: @escaping Handler) {
         if pendingHandlersFor[threadId] == nil {
@@ -40,16 +40,16 @@ extension ThreadService {
 }
 
 extension ThreadService {
-    
     // MARK: Get Thread
+
     func get(threadWithId threadId: String, completionHandler: @escaping Handler) {
         if let thread = threadsCache.object(forKey: threadId as NSString) {
             return completionHandler(thread)
         }
+
         appendHandler(forThreadId: threadId, completionHandler)
-        guard (pendingHandlersFor[threadId]!.count) == 1 else {
-            return
-        }
+        guard (pendingHandlersFor[threadId]!.count) == 1 else { return }
+
         let path: GMailAPIService.Method.Path = .threads(.get(userId: "me", id: threadId))
         let method: GMailAPIService.Method = .init(pathParameters: path, queryParameters: nil)
         service.executeMethod(method, completionHandler: {
@@ -60,8 +60,9 @@ extension ThreadService {
             }
         })
     }
-    
+
     // MARK: List Threads
+
     func list(withLabelId labelId: String?, withMaxResults maxResults: Int, withPageToken pageToken: String?, completionHandler: @escaping ListResponseHandler) {
         let path: GMailAPIService.Method.Path = .threads(.list(userId: "me", pageToken: pageToken ?? ""))
         var queryParameters = [
@@ -78,8 +79,9 @@ extension ThreadService {
             completionHandler(threadList)
         })
     }
-    
+
     // MARK: List Thread Detail
+
     func listDetail(forLabelId labelId: String?, withMaxResults maxResults: Int, withPageToken pageToken: String?, completionHandler: @escaping ListResponseHandler) {
         list(withLabelId: labelId, withMaxResults: maxResults, withPageToken: pageToken) {
             threadListResponse in

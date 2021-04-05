@@ -33,8 +33,7 @@
 		B034C410260D8232002731D0 /* DBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B034C40F260D8232002731D0 /* DBService.swift */; };
 		B034C418260D8339002731D0 /* MessageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B034C417260D8339002731D0 /* MessageService.swift */; };
 		B04497DE26086CDC00CEF71A /* Attachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497DD26086CDC00CEF71A /* Attachment.swift */; };
-		B04497E3260872E700CEF71A /* FileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497E2260872E700CEF71A /* FileViewController.swift */; };
-		B04497F62608EC5700CEF71A /* AttachmentsLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497F52608EC5700CEF71A /* AttachmentsLoader.swift */; };
+		B04497E3260872E700CEF71A /* AttachmentPreviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04497E2260872E700CEF71A /* AttachmentPreviewController.swift */; };
 		B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */; };
 		B04B64092611754D0076FD59 /* StateMO+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04B64072611754D0076FD59 /* StateMO+CoreDataClass.swift */; };
 		B04B640A2611754D0076FD59 /* StateMO+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04B64082611754D0076FD59 /* StateMO+CoreDataProperties.swift */; };
@@ -55,7 +54,7 @@
 		B0834B9F25D14D94008E1807 /* EmailClientUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0834B9E25D14D94008E1807 /* EmailClientUITests.swift */; };
 		B0A7272B26141F1E00D2ADBC /* Managed.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A7272A26141F1E00D2ADBC /* Managed.swift */; };
 		B0A72736261446C300D2ADBC /* AttachmentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0ED901725FA7B5500163189 /* AttachmentCollectionViewCell.swift */; };
-		B0A7273F26144D4D00D2ADBC /* AttachmentCollectionViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A7273E26144D4D00D2ADBC /* AttachmentCollectionViewDataSource.swift */; };
+		B0A7273F26144D4D00D2ADBC /* CollectionViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A7273E26144D4D00D2ADBC /* CollectionViewDataSource.swift */; };
 		B0A727802614D2FF00D2ADBC /* AttachmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0A7277F2614D2FF00D2ADBC /* AttachmentsView.swift */; };
 		B0BB19B82600CFC7007A56B5 /* Constraints.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BB19B72600CFC7007A56B5 /* Constraints.swift */; };
 		B0C847EC25D4D060004A0861 /* Networker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0C847EB25D4D060004A0861 /* Networker.swift */; };
@@ -112,8 +111,7 @@
 		B034C40F260D8232002731D0 /* DBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DBService.swift; sourceTree = "<group>"; };
 		B034C417260D8339002731D0 /* MessageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageService.swift; sourceTree = "<group>"; };
 		B04497DD26086CDC00CEF71A /* Attachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Attachment.swift; sourceTree = "<group>"; };
-		B04497E2260872E700CEF71A /* FileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewController.swift; sourceTree = "<group>"; };
-		B04497F52608EC5700CEF71A /* AttachmentsLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsLoader.swift; sourceTree = "<group>"; };
+		B04497E2260872E700CEF71A /* AttachmentPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentPreviewController.swift; sourceTree = "<group>"; };
 		B044EC5725E3418B00826E15 /* ThreadTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadTableViewCell.swift; sourceTree = "<group>"; };
 		B04B64072611754D0076FD59 /* StateMO+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StateMO+CoreDataClass.swift"; sourceTree = "<group>"; };
 		B04B64082611754D0076FD59 /* StateMO+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StateMO+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -139,7 +137,7 @@
 		B0834B9E25D14D94008E1807 /* EmailClientUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailClientUITests.swift; sourceTree = "<group>"; };
 		B0834BA025D14D94008E1807 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B0A7272A26141F1E00D2ADBC /* Managed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Managed.swift; sourceTree = "<group>"; };
-		B0A7273E26144D4D00D2ADBC /* AttachmentCollectionViewDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentCollectionViewDataSource.swift; sourceTree = "<group>"; };
+		B0A7273E26144D4D00D2ADBC /* CollectionViewDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewDataSource.swift; sourceTree = "<group>"; };
 		B0A7277F2614D2FF00D2ADBC /* AttachmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentsView.swift; sourceTree = "<group>"; };
 		B0BB19B72600CFC7007A56B5 /* Constraints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constraints.swift; sourceTree = "<group>"; };
 		B0C847EB25D4D060004A0861 /* Networker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Networker.swift; sourceTree = "<group>"; };
@@ -191,7 +189,7 @@
 				B02ABB9925F9F330000C2B15 /* ThreadDetailViewController.swift */,
 				B0115CE425FF47FC008E8C00 /* ComposeViewController.swift */,
 				B0F51B7126039FA200785697 /* SplitViewController.swift */,
-				B04497E2260872E700CEF71A /* FileViewController.swift */,
+				B04497E2260872E700CEF71A /* AttachmentPreviewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -222,7 +220,7 @@
 		B04497EC2608BB8A00CEF71A /* Loader */ = {
 			isa = PBXGroup;
 			children = (
-				B04497F52608EC5700CEF71A /* AttachmentsLoader.swift */,
+				B0A7273E26144D4D00D2ADBC /* CollectionViewDataSource.swift */,
 				B0DC382D261763B10065B0B6 /* TableViewDataSource.swift */,
 			);
 			path = Loader;
@@ -289,7 +287,6 @@
 				B01CC07B2605A2A10050A157 /* Service */,
 				B0A727352614466C00D2ADBC /* Utils */,
 				B011E62725ECF874002FDB34 /* ViewControllers */,
-				B0A7273E26144D4D00D2ADBC /* AttachmentCollectionViewDataSource.swift */,
 			);
 			path = EmailClient;
 			sourceTree = "<group>";
@@ -662,14 +659,13 @@
 				B07D68BE2610236800314FE3 /* MessageVM.swift in Sources */,
 				B058DFA02612EDDB006B8491 /* AttachmentMO+CoreDataProperties.swift in Sources */,
 				B034C418260D8339002731D0 /* MessageService.swift in Sources */,
-				B04497F62608EC5700CEF71A /* AttachmentsLoader.swift in Sources */,
 				B0115CE525FF47FC008E8C00 /* ComposeViewController.swift in Sources */,
 				B025A728260F7D2F00E2C771 /* Message+CoreDataClass.swift in Sources */,
 				B01CC07D2605A2AF0050A157 /* GMailAPIService.swift in Sources */,
-				B0A7273F26144D4D00D2ADBC /* AttachmentCollectionViewDataSource.swift in Sources */,
+				B0A7273F26144D4D00D2ADBC /* CollectionViewDataSource.swift in Sources */,
 				B025A71E260F5D2900E2C771 /* Thread+CoreDataProperties.swift in Sources */,
 				B044EC5925E3418B00826E15 /* ThreadTableViewCell.swift in Sources */,
-				B04497E3260872E700CEF71A /* FileViewController.swift in Sources */,
+				B04497E3260872E700CEF71A /* AttachmentPreviewController.swift in Sources */,
 				B01CC0972605D2520050A157 /* SyncService.swift in Sources */,
 				B011E63225ECF88B002FDB34 /* LoginViewController.swift in Sources */,
 				B04B64092611754D0076FD59 /* StateMO+CoreDataClass.swift in Sources */,
