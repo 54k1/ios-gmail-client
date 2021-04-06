@@ -94,10 +94,10 @@ extension FolderViewController {
         tableView.delegate = self
         tableView.dataSource = dataSource
     }
-    
+
     private func setupEmptyView() {
-        emptyView.text = "No threads with label \(self.label.name)"
-        
+        emptyView.text = "No threads with label \(label.name)"
+
         view.addSubview(emptyView)
         emptyView.center(in: view)
         emptyView.isHidden = true
@@ -138,7 +138,7 @@ extension FolderViewController: UITableViewDelegate {
         downloadAttachment(for: thread)
         threadSelectionDelegate?.didSelect(thread)
     }
-    
+
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         return 80
     }
@@ -166,6 +166,7 @@ protocol ThreadSelectionDelegate: class {
 }
 
 // MARK: Data Source Delegate
+
 extension FolderViewController: TableViewDataSourceDelegate {
     typealias Cell = ThreadTableViewCell
     typealias Object = ThreadMO
@@ -181,6 +182,7 @@ extension FolderViewController: TableViewDataSourceDelegate {
 }
 
 // MARK: Download Attachment
+
 extension FolderViewController {
     private func downloadAttachment(for thread: ThreadMO) {
         for message in thread.messages.array {

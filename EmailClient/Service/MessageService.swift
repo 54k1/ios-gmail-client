@@ -9,7 +9,7 @@ import Foundation
 
 class MessageService {
     typealias Handler = (GMailAPIService.Resource.Message?) -> Void
-    private typealias Message = GMailAPIService.Resource.Message
+    typealias Message = GMailAPIService.Resource.Message
 
     private var messagesCache = NSCache<NSString, Message>()
     private var pendingHandlersFor = [String: [Handler]]()
@@ -54,5 +54,27 @@ extension MessageService {
         let handlers = pendingHandlersFor[messageId]
         pendingHandlersFor[messageId] = []
         handlers?.forEach { $0(messageOptional) }
+    }
+}
+
+extension MessageService {
+    public func sendMessage(_ raw: String, completionHandler: @escaping (Message?) -> Void) {
+        let path: GMailAPIService.Method.Path = .messages(.send)
+
+        let json = """
+        {
+            \"raw\": \"\(raw)\"
+        }
+        """
+        print(json)
+        guard let body = json.data(using: .utf8) else {
+            completionHandler(nil)
+            return
+        }
+
+        let method = GMailAPIService.Method(pathParameters: path, queryParameters: nil, body: body)
+        service.executeMethod(method) { (messageOpt: Message?) in
+            completionHandler(messageOpt)
+        }
     }
 }

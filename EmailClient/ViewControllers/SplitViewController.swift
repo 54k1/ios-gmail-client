@@ -14,7 +14,7 @@ class SplitViewController: UISplitViewController {
         let persistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
         service = SyncService(authorizationValue: authorizationValue, container: persistentContainer)
         super.init(style: .tripleColumn)
-        self.delegate = self
+        delegate = self
         setupViewControllers()
     }
 
@@ -67,7 +67,7 @@ extension SplitViewController: ThreadSelectionDelegate {
 }
 
 extension SplitViewController: UISplitViewControllerDelegate {
-    func splitViewController(_ svc: UISplitViewController, topColumnForCollapsingToProposedTopColumn proposedTopColumn: UISplitViewController.Column) -> UISplitViewController.Column {
+    func splitViewController(_: UISplitViewController, topColumnForCollapsingToProposedTopColumn _: UISplitViewController.Column) -> UISplitViewController.Column {
         .primary
     }
 }

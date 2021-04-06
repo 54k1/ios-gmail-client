@@ -342,3 +342,11 @@ extension SyncService {
         }
     }
 }
+
+// MARK: Message Send
+
+extension SyncService {
+    public func sendMessage(_ raw: String, completionHandler: @escaping (MessageService.Message?) -> Void) {
+        messageService.sendMessage(raw, completionHandler: completionHandler)
+    }
+}

@@ -20,6 +20,13 @@ extension GMailAPIService {
     struct Method {
         let pathParameters: Path
         let queryParameters: QueryParameters?
+        let body: Data?
+
+        init(pathParameters: Path, queryParameters: QueryParameters? = nil, body: Data? = nil) {
+            self.pathParameters = pathParameters
+            self.queryParameters = queryParameters
+            self.body = body
+        }
     }
 
     func executeMethod<T: Codable>(_ method: Method, completionHandler: @escaping (T?) -> Void) {
@@ -44,10 +51,10 @@ extension GMailAPIService {
 
 extension GMailAPIService {
     private func makeRequest(forMethod method: Method) -> URLRequest {
-        makeRequest(forPath: method.pathParameters, withQueryParameters: method.queryParameters)
+        makeRequest(forPath: method.pathParameters, withQueryParameters: method.queryParameters, withBody: method.body)
     }
 
-    private func makeRequest(forPath path: Method.Path, withQueryParameters queryParameters: Method.QueryParameters?) -> URLRequest {
+    private func makeRequest(forPath path: Method.Path, withQueryParameters queryParameters: Method.QueryParameters?, withBody body: Data?) -> URLRequest {
         var urlComponents = URLComponents()
         urlComponents.scheme = "https"
         urlComponents.host = "gmail.googleapis.com"
@@ -57,7 +64,13 @@ extension GMailAPIService {
             URLQueryItem(name: key, value: value)
         }
 
-        let request = makeRequest(url: urlComponents.url!)
+        var request = makeRequest(url: urlComponents.url!)
+        if body != nil {
+            request.httpBody = body
+            request.httpMethod = "POST"
+            request.addValue("application/json; charset=UTF-8", forHTTPHeaderField: "Content-Type")
+        }
+
         return request
     }
 
@@ -94,6 +107,7 @@ extension GMailAPIService.Method {
 
             case get(id: String)
             case attachments(messageId: String, attachmentId: String)
+            case send
         }
 
         enum LabelPath {
@@ -130,6 +144,8 @@ private extension GMailAPIService.Method.Path {
                 method += "/\(messageId)/attachments/\(attachmentId)"
             case let .get(id):
                 method += "/\(id)"
+            case .send:
+                method += "/send"
             }
         case let .labels(labelPath):
             method += "labels"

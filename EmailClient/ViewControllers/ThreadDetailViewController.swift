@@ -31,10 +31,10 @@ class ThreadDetailViewController: UIViewController {
         setupViews()
         reloadData()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.reloadData()
+        reloadData()
     }
 
     // MARK: Private
@@ -85,7 +85,7 @@ extension ThreadDetailViewController {
         view.addSubview(unselectedIndicatorLabel)
         unselectedIndicatorLabel.center(in: view)
     }
-    
+
     private func setupNavigationBar() {
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.backgroundColor = .systemBackground
@@ -101,10 +101,10 @@ extension ThreadDetailViewController {
 
     func configure(with threadMO: ThreadMO) {
         self.threadMO = threadMO
-        self.threadVM = .init(from: threadMO)
+        threadVM = .init(from: threadMO)
         reloadData()
     }
-    
+
     private func reloadData() {
         title = threadVM?.messages.first?.subject
         subjectHeader?.text = title ?? "No Subject"
@@ -112,7 +112,6 @@ extension ThreadDetailViewController {
         tableView?.reloadData()
     }
 }
-
 
 // MARK: Table Data Source
 
@@ -221,7 +220,6 @@ extension ThreadDetailViewController: CollectionViewDataSourceDelegate {
         cell.configure(with: attachmentVM)
     }
 }
-
 
 // MARK: Collection View Delegate
 

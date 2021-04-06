@@ -7,6 +7,7 @@
 
 import CoreData
 import GoogleSignIn
+import MessageUI
 import UIKit
 
 private enum MenuItem {
@@ -223,8 +224,13 @@ extension MenuViewController: UITableViewDelegate {
 
 extension MenuViewController {
     @objc func clickComposeMail() {
-        // print("click compose mail")
-        navigationController?.pushViewController(ComposeViewController(), animated: true)
+        let vc = ComposeViewController(service: service)
+        let navVC = UINavigationController(rootViewController: vc)
+        navVC.isModalInPresentation = true
+        present(navVC, animated: true) {
+            print("completed")
+        }
+        // navigationController?.pushViewController(ComposeViewController(service: service), animated: true)
     }
 }
 
