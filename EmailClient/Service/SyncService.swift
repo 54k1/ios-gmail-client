@@ -29,6 +29,7 @@ final class SyncService {
         attachmentService = AttachmentService(service: service)
 
         backgroundContext = container.newBackgroundContext()
+        backgroundContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         dbService = DBService(context: backgroundContext)
 
         viewContext = container.viewContext

@@ -77,8 +77,10 @@ extension MessageViewCell {
 
         // SenderName Label
         func setupLabelView() {
-            labelView.font = .systemFont(ofSize: 20, weight: .regular)
+            // labelView.font = .systemFont(ofSize: 20, weight: .regular)
             headerView.addArrangedSubview(labelView)
+            labelView.adjustsFontSizeToFitWidth = true
+            labelView.adjustsFontForContentSizeCategory = true
         }
 
         headerView.setConstant(height: Constants.headerHeight)
@@ -130,6 +132,3 @@ extension MessageViewCell {
     }
 }
 
-protocol CollectionViewDelegate {
-    func didSelectItemAt(_ indexPath: IndexPath, attachmentsMetaData: [MessageComponentExtractor.AttachmentMetaData]?)
-}

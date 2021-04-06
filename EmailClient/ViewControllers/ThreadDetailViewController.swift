@@ -29,6 +29,12 @@ class ThreadDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
+        reloadData()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.reloadData()
     }
 
     // MARK: Private
@@ -50,8 +56,8 @@ extension ThreadDetailViewController {
         setupHeaderView()
         setupTableView()
         setupEmptyView()
-
-        view.backgroundColor = .white
+        setupNavigationBar()
+        view.backgroundColor = .systemBackground
     }
 
     private func setupTableView() {
@@ -69,12 +75,7 @@ extension ThreadDetailViewController {
 
     private func setupHeaderView() {
         subjectHeader = UILabel()
-        view.addSubview(subjectHeader)
         subjectHeader.numberOfLines = 0
-        subjectHeader
-            .alignLeading(to: view.safeAreaLayoutGuide.leadingAnchor, withPadding: 20)
-            .alignTrailing(to: view.safeAreaLayoutGuide.trailingAnchor, withPadding: -20)
-            .setConstant(height: 100)
         subjectHeader.font = .systemFont(ofSize: 20, weight: .semibold)
     }
 
@@ -84,6 +85,11 @@ extension ThreadDetailViewController {
         view.addSubview(unselectedIndicatorLabel)
         unselectedIndicatorLabel.center(in: view)
     }
+    
+    private func setupNavigationBar() {
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.backgroundColor = .systemBackground
+    }
 }
 
 // MARK: Configure
@@ -91,18 +97,24 @@ extension ThreadDetailViewController {
 extension ThreadDetailViewController {
     private func configure(with threadVM: ViewModel.Thread) {
         self.threadVM = threadVM
-        title = threadVM.messages.first?.subject
-        subjectHeader.text = title
-        unselectedIndicatorLabel.isHidden = true
-        tableView.reloadData()
     }
 
     func configure(with threadMO: ThreadMO) {
-        let threadVM = ViewModel.Thread(from: threadMO)
         self.threadMO = threadMO
-        configure(with: threadVM)
+        self.threadVM = .init(from: threadMO)
+        reloadData()
+    }
+    
+    private func reloadData() {
+        title = threadVM?.messages.first?.subject
+        subjectHeader?.text = title ?? "No Subject"
+        unselectedIndicatorLabel?.isHidden = true
+        tableView?.reloadData()
     }
 }
+
+
+// MARK: Table Data Source
 
 extension ThreadDetailViewController: UITableViewDataSource {
     func numberOfSections(in _: UITableView) -> Int {
@@ -159,6 +171,8 @@ extension ThreadDetailViewController: UITableViewDataSource {
     }
 }
 
+// MARK: Table View Delegate
+
 extension ThreadDetailViewController: UITableViewDelegate {
     func tableView(_: UITableView, viewForFooterInSection section: Int) -> UIView? {
         let message = threadMO?.messages.array[section] as! MessageMO
@@ -207,6 +221,9 @@ extension ThreadDetailViewController: CollectionViewDataSourceDelegate {
         cell.configure(with: attachmentVM)
     }
 }
+
+
+// MARK: Collection View Delegate
 
 extension ThreadDetailViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt _: IndexPath) {

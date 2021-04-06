@@ -12,6 +12,7 @@ import UIKit
 class FolderViewController: UIViewController {
     // MARK: SubViews
 
+    private let emptyView = UILabel()
     private let tableView = UITableView()
     private var refreshControl = UIRefreshControl()
 
@@ -70,16 +71,15 @@ extension FolderViewController {
     private func setupViews() {
         setupRefreshControl()
         setupNavigationBar()
-        view.backgroundColor = .white
-        view.addSubview(tableView)
-        tableView.embed(in: view.safeAreaLayoutGuide)
+        setupEmptyView()
+        view.backgroundColor = .systemBackground
     }
 
     private func setupNavigationBar() {
         title = label.name.capitalized
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(partialSync))
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationController?.navigationBar.largeContentTitle = label.name.capitalized
+        navigationController?.navigationBar.prefersLargeTitles = false
+        navigationController?.navigationBar.backgroundColor = .systemBackground
     }
 
     private func setupRefreshControl() {
@@ -87,10 +87,20 @@ extension FolderViewController {
     }
 
     private func setupTableView() {
+        view.addSubview(tableView)
+        tableView.embed(in: view.safeAreaLayoutGuide)
         tableView.tableFooterView = UIView()
         tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
         tableView.dataSource = dataSource
+    }
+    
+    private func setupEmptyView() {
+        emptyView.text = "No threads with label \(self.label.name)"
+        
+        view.addSubview(emptyView)
+        emptyView.center(in: view)
+        emptyView.isHidden = true
     }
 }
 
@@ -126,10 +136,9 @@ extension FolderViewController: UITableViewDelegate {
         }
 
         downloadAttachment(for: thread)
-        // let vm = ViewModel.Thread(from: thread)
         threadSelectionDelegate?.didSelect(thread)
     }
-
+    
     func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         return 80
     }
@@ -156,6 +165,7 @@ protocol ThreadSelectionDelegate: class {
     func didSelect(_ thread: ThreadMO)
 }
 
+// MARK: Data Source Delegate
 extension FolderViewController: TableViewDataSourceDelegate {
     typealias Cell = ThreadTableViewCell
     typealias Object = ThreadMO
@@ -170,6 +180,7 @@ extension FolderViewController: TableViewDataSourceDelegate {
     }
 }
 
+// MARK: Download Attachment
 extension FolderViewController {
     private func downloadAttachment(for thread: ThreadMO) {
         for message in thread.messages.array {

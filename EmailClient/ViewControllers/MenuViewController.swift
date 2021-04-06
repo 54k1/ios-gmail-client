@@ -98,11 +98,13 @@ extension MenuViewController {
     }
 }
 
+// MARK: Setup Views
+
 private extension MenuViewController {
     private func setupViews() {
         setupTableView()
         setupNavigationBar()
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
     }
 
     private func setupTableView() {
@@ -116,6 +118,7 @@ private extension MenuViewController {
     private func setupNavigationBar() {
         navigationController?.navigationBar.isTranslucent = true
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.backgroundColor = .systemBackground
         title = "Menu"
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "pencil.circle"), style: .done, target: self, action: #selector(clickComposeMail))
@@ -171,7 +174,10 @@ extension MenuViewController: UITableViewDataSource {
 }
 
 extension MenuViewController: UITableViewDelegate {
-    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        defer {
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
         let item = menuSections[indexPath.section][indexPath.row]
         switch item {
         case let .label(id, name):

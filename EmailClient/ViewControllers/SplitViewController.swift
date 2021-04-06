@@ -14,6 +14,7 @@ class SplitViewController: UISplitViewController {
         let persistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
         service = SyncService(authorizationValue: authorizationValue, container: persistentContainer)
         super.init(style: .tripleColumn)
+        self.delegate = self
         setupViewControllers()
     }
 
@@ -24,6 +25,7 @@ class SplitViewController: UISplitViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .systemBackground
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -61,5 +63,11 @@ extension SplitViewController: ThreadSelectionDelegate {
         }
         vc.didSelect(thread)
         show(.secondary)
+    }
+}
+
+extension SplitViewController: UISplitViewControllerDelegate {
+    func splitViewController(_ svc: UISplitViewController, topColumnForCollapsingToProposedTopColumn proposedTopColumn: UISplitViewController.Column) -> UISplitViewController.Column {
+        .primary
     }
 }
