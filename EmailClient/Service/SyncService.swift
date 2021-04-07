@@ -48,7 +48,7 @@ extension SyncService {
     }
 
     @objc private func didSave(_ notification: Notification) {
-        print("DIDSAVENOTIF")
+        // print("DIDSAVENOTIF")
         viewContext.perform {
             self.viewContext.mergeChanges(fromContextDidSave: notification)
         }
@@ -294,7 +294,7 @@ extension SyncService {
         }
         group.notify(queue: DispatchQueue.global(), execute: {
             self.dbService.saveOrRollback()
-            print("Hit save")
+            // print("Hit save")
         })
     }
 }
@@ -331,7 +331,7 @@ extension SyncService {
             QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { rep, err in
                 thumbnail = rep?.uiImage.pngData()
                 if let err = err {
-                    print("Thumbnail Generation Error: ", err)
+                    NSLog("Thumbnail Generation Error: ", err.localizedDescription)
                 }
                 self.dbService.perform {
                     attachment.location = url.absoluteString

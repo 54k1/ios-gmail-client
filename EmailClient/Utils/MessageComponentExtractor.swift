@@ -89,7 +89,7 @@ extension MessageComponentExtractor {
             htmlContent = content
         }
 
-        let htmlString = "<html><head><meta charset='utf8'><meta name = 'viewport' content = 'width=device-width'></head>" + htmlContent.data + "</html>"
+        let htmlString = "<html><head><meta charset='utf8'><meta name = 'viewport' content = 'width=device-width, initial-scale=1, maximum-scale=1.0'></head>" + htmlContent.data + "</html>"
 
         var fromUser, toUser: Message.User?
         if let fromName = message.fromName, let fromEmail = message.fromEmail {

@@ -44,32 +44,34 @@ class TableViewDataSource<Delegate: TableViewDataSourceDelegate, Result: NSFetch
     // MARK: NSFetchedResultsControllerDelegate
 
     func controllerWillChangeContent(_: NSFetchedResultsController<NSFetchRequestResult>) {
-        tableView?.beginUpdates()
+        // tableView?.beginUpdates()
     }
 
-    func controller(_: NSFetchedResultsController<NSFetchRequestResult>, didChange _: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        print("type=\(type)")
-        switch type {
-        case .insert:
-            guard let indexPath = newIndexPath else { fatalError("newIndexPath must not be nil") }
-            tableView?.insertRows(at: [indexPath], with: .automatic)
-        case .move:
-            guard let indexPath = indexPath, let newIndexPath = newIndexPath else { fatalError("indexPath, newIndexPath must not be nil") }
-            tableView?.moveRow(at: indexPath, to: newIndexPath)
-        case .delete:
-            guard let indexPath = indexPath else { fatalError("indexPath must not be nil") }
-            tableView?.deleteRows(at: [indexPath], with: .automatic)
-        case .update:
-            ()
-        // guard let indexPath = indexPath else {fatalError("indexPath must not be nil")}
-        // tableView?.cellForRow(at: indexPath)
-        @unknown default:
-            fatalError("Unknown NSFetchedResultsChangeType")
-        }
+    func controller(_: NSFetchedResultsController<NSFetchRequestResult>, didChange _: Any, at _: IndexPath?, for _: NSFetchedResultsChangeType, newIndexPath _: IndexPath?) {
+        // switch type {
+        // case .insert:
+        //     guard let indexPath = newIndexPath else { fatalError("newIndexPath must not be nil") }
+        //     tableView?.insertRows(at: [indexPath], with: .automatic)
+        // case .move:
+        //     guard let indexPath = indexPath, let newIndexPath = newIndexPath else { fatalError("indexPath, newIndexPath must not be nil") }
+        //     tableView?.moveRow(at: indexPath, to: newIndexPath)
+        // case .delete:
+        //     guard let indexPath = indexPath else { fatalError("indexPath must not be nil") }
+        //     tableView?.deleteRows(at: [indexPath], with: .automatic)
+        // case .update:
+        //     ()
+        // // guard let indexPath = indexPath else {fatalError("indexPath must not be nil")}
+        // // tableView?.cellForRow(at: indexPath)
+        // @unknown default:
+        //     fatalError("Unknown NSFetchedResultsChangeType")
+        // }
     }
 
     func controllerDidChangeContent(_: NSFetchedResultsController<NSFetchRequestResult>) {
-        tableView?.endUpdates()
+        // tableView?.endUpdates()
+        DispatchQueue.main.async {
+            self.tableView?.reloadData()
+        }
     }
 
     // MARK: UITableViewDataSource
@@ -111,5 +113,9 @@ class TableViewDataSource<Delegate: TableViewDataSourceDelegate, Result: NSFetch
     var selectedObject: Object? {
         guard let indexPath = tableView?.indexPathForSelectedRow else { return nil }
         return frc.object(at: indexPath) as? Object
+    }
+
+    var isEmpty: Bool {
+        false
     }
 }

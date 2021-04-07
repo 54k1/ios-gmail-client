@@ -25,11 +25,22 @@ class SplitViewController: UISplitViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupViews()
+    }
+}
+
+// MARK: Setup Views
+
+extension SplitViewController {
+    private func setupViews() {
         view.backgroundColor = .systemBackground
+        setupNavigationBar()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    private func setupNavigationBar() {
+        navigationItem.leftBarButtonItems = [
+            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: nil),
+        ]
     }
 }
 
@@ -39,8 +50,8 @@ extension SplitViewController {
         let folderViewController = menuViewController.primaryViewController
         let threadViewController = ThreadDetailViewController(service: service)
 
-        setViewController(menuViewController, for: .primary)
-        setViewController(folderViewController, for: .supplementary)
+        setViewController(UINavigationController(rootViewController: menuViewController), for: .primary)
+        setViewController(UINavigationController(rootViewController: folderViewController), for: .supplementary)
         setViewController(threadViewController, for: .secondary)
 
         menuViewController.labelSelectionDelegate = self
@@ -62,6 +73,7 @@ extension SplitViewController: ThreadSelectionDelegate {
             return
         }
         vc.didSelect(thread)
+        // setViewController(vc, for: .secondary)
         show(.secondary)
     }
 }

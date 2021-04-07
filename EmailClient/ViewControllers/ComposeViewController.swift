@@ -47,10 +47,13 @@ extension ComposeViewController {
 
         setupTableView()
         setupNavigationBar()
+
+        view.backgroundColor = .systemBackground
     }
 
     private func setupTableView() {
         view.addSubview(tableView)
+
         tableView.embed(inSafeAreaOf: view)
         tableView.rowHeight = 44
         (tableView.dataSource, tableView.delegate) = (self, self)
@@ -60,14 +63,15 @@ extension ComposeViewController {
     }
 
     private func setupNavigationBar() {
-        navigationController?.navigationBar.prefersLargeTitles = false
         navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(systemName: "paperplane"), style: .done, target: self, action: #selector(sendMessage)),
-            UIBarButtonItem(image: UIImage(systemName: "paperclip"), style: .done, target: nil, action: nil),
+            UIBarButtonItem(image: UIImage(systemName: "paperclip"), style: .done, target: self, action: #selector(selectAttachments)),
         ]
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
     }
 }
+
+// MARK: TableView Data Source
 
 extension ComposeViewController: UITableViewDataSource {
     func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
@@ -87,9 +91,24 @@ extension ComposeViewController: UITableViewDataSource {
             cell.contentView.addSubview(textView)
             textView.embed(in: cell.contentView.safeAreaLayoutGuide, withPadding: 10)
         default:
-            fatalError("Only 2 rows")
+            fatalError("Only 3 rows")
         }
         return cell
+    }
+}
+
+// MARK: TableView Delegate
+
+extension ComposeViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        switch indexPath.row {
+        case 0, 1:
+            return 44
+        case 2:
+            return tableView.frame.height - 2 * 44
+        default:
+            fatalError("No such row")
+        }
     }
 }
 
@@ -110,23 +129,6 @@ private extension ComposeViewController {
     }
 }
 
-extension ComposeViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        switch indexPath.row {
-        case 0, 1:
-            return 44
-        case 2:
-            return tableView.frame.height - 2 * 44
-        default:
-            fatalError("No such row")
-        }
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
-}
-
 extension ComposeViewController {
     private func buildRawMessage() -> String? {
         guard let to = toTextField.text, let subject = subjectTextField.text, let contents = textView.text else {
@@ -135,19 +137,6 @@ extension ComposeViewController {
         let builder = MessageBuilder()
         let rawMessage = builder.contents(contents).to(to).subject(subject).rawMessage()
         return rawMessage
-    }
-
-    @objc private func sendMessage() {
-        guard validate() else { return }
-
-        guard let raw = buildRawMessage() else { return }
-
-        service.sendMessage(raw) {
-            _ in
-            DispatchQueue.main.async {
-                self.dismiss(animated: true, completion: nil)
-            }
-        }
     }
 }
 
@@ -186,8 +175,37 @@ extension ComposeViewController {
     }
 }
 
+// MARK: Navigation Button Actions
+
 extension ComposeViewController {
     @objc private func cancel() {
         dismiss(animated: true, completion: nil)
+    }
+
+    @objc private func selectAttachments() {
+        let vc = UIDocumentPickerViewController(forOpeningContentTypes: [.fileURL, .folder, .pdf])
+        vc.allowsMultipleSelection = true
+        vc.delegate = self
+        present(vc, animated: true)
+    }
+
+    @objc private func sendMessage() {
+        guard validate() else { return }
+        guard let raw = buildRawMessage() else { return }
+
+        service.sendMessage(raw) {
+            _ in
+            DispatchQueue.main.async {
+                self.dismiss(animated: true, completion: nil)
+            }
+        }
+    }
+}
+
+extension ComposeViewController: UIDocumentPickerDelegate {
+    func documentPicker(_: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        urls.forEach {
+            print($0)
+        }
     }
 }

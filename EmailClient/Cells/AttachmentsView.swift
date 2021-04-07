@@ -41,7 +41,7 @@ extension AttachmentsView {
         contentView.addSubview(collectionView)
         collectionView.embed(in: contentView.safeAreaLayoutGuide)
 
-        contentView.backgroundColor = .white
-        collectionView.backgroundColor = .white
+        // contentView.backgroundColor = .white
+        collectionView.backgroundColor = .systemBackground
     }
 }

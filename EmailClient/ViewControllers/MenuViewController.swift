@@ -30,7 +30,7 @@ final class MenuViewController: UIViewController {
 
     private var vcOf = [String: FolderViewController]()
 
-    private let tableView = UITableView(frame: .zero, style: .plain)
+    private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     let service: SyncService
 
     init(service: SyncService) {
@@ -68,10 +68,13 @@ extension MenuViewController {
     }
 
     private func configureUserLabels(_ labels: [LabelMO]) {
+        guard menuSections[userLabelSection].count == 0 else { return }
+
         for label in labels {
             menuSections[userLabelSection].append(.label(id: label.id, name: label.name))
             guard let color = label.color, let colour = UIColor(hex: color) else { continue }
             imageForLabelId[label.id] = UIImage(color: colour)
+            vcOf[label.id] = FolderViewController(service: service, label: (id: label.id, name: label.name))
         }
     }
 }
@@ -105,7 +108,8 @@ private extension MenuViewController {
     private func setupViews() {
         setupTableView()
         setupNavigationBar()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = tableView.backgroundColor
+        navigationController?.navigationBar.backgroundColor = tableView.backgroundColor
     }
 
     private func setupTableView() {
@@ -147,6 +151,8 @@ private var imageForLabelId: [String: UIImage] = [
     "TRASH": UIImage(systemName: "trash")!,
 ]
 
+// MARK: TableView Data Source
+
 extension MenuViewController: UITableViewDataSource {
     func numberOfSections(in _: UITableView) -> Int {
         menuSections.count
@@ -165,9 +171,9 @@ extension MenuViewController: UITableViewDataSource {
             } else {
                 cell.configure(withLabelText: menuSections[indexPath.section][indexPath.row].displayName.capitalized, withImage: UIImage(color: .systemPink, size: CGSize(width: 10, height: 10))!)
             }
-        // let image = UIImage(color: .systemRed, size: CGSize(width: 10, height: 10))!
+            cell.accessoryType = .disclosureIndicator
         case let .other(label):
-            cell.configure(withLabelText: label)
+            cell.configure(withLabelText: label.capitalized)
         }
 
         return cell
@@ -175,9 +181,9 @@ extension MenuViewController: UITableViewDataSource {
 }
 
 extension MenuViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         defer {
-            tableView.deselectRow(at: indexPath, animated: true)
+            // tableView.deselectRow(at: indexPath, animated: true)
         }
         let item = menuSections[indexPath.section][indexPath.row]
         switch item {
@@ -224,13 +230,11 @@ extension MenuViewController: UITableViewDelegate {
 
 extension MenuViewController {
     @objc func clickComposeMail() {
-        let vc = ComposeViewController(service: service)
-        let navVC = UINavigationController(rootViewController: vc)
-        navVC.isModalInPresentation = true
-        present(navVC, animated: true) {
+        let vc = UINavigationController(rootViewController: ComposeViewController(service: service))
+        vc.isModalInPresentation = true
+        present(vc, animated: true) {
             print("completed")
         }
-        // navigationController?.pushViewController(ComposeViewController(service: service), animated: true)
     }
 }
 

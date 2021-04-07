@@ -13,7 +13,7 @@ class FolderViewController: UIViewController {
     // MARK: SubViews
 
     private let emptyView = UILabel()
-    private let tableView = UITableView()
+    private let tableView = UITableView(frame: .zero, style: .grouped)
     private var refreshControl = UIRefreshControl()
 
     init(service: SyncService, label: (id: String, name: String)) {
@@ -21,7 +21,6 @@ class FolderViewController: UIViewController {
         self.label = label
         super.init(nibName: nil, bundle: nil)
 
-        setupTableView()
         setupDataSource()
         registerNotificationObservers()
     }
@@ -69,6 +68,7 @@ extension FolderViewController {
 
 extension FolderViewController {
     private func setupViews() {
+        setupTableView()
         setupRefreshControl()
         setupNavigationBar()
         setupEmptyView()
@@ -76,10 +76,11 @@ extension FolderViewController {
     }
 
     private func setupNavigationBar() {
-        title = label.name.capitalized
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(partialSync))
-        navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.backgroundColor = .systemBackground
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
+        title = label.name.capitalized
     }
 
     private func setupRefreshControl() {
@@ -93,6 +94,7 @@ extension FolderViewController {
         tableView.register(ThreadTableViewCell.self, forCellReuseIdentifier: ThreadTableViewCell.identifier)
         tableView.delegate = self
         tableView.dataSource = dataSource
+        tableView.backgroundColor = .systemBackground
     }
 
     private func setupEmptyView() {
@@ -100,7 +102,7 @@ extension FolderViewController {
 
         view.addSubview(emptyView)
         emptyView.center(in: view)
-        emptyView.isHidden = true
+        emptyView.isHidden = !dataSource.isEmpty
     }
 }
 
@@ -129,11 +131,12 @@ extension FolderViewController {
 // MARK: UITableViewDelegate
 
 extension FolderViewController: UITableViewDelegate {
-    func tableView(_: UITableView, didSelectRowAt _: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let thread = dataSource.selectedObject else {
             NSLog("Unable to retreive selected thread in table")
             return
         }
+        tableView.deselectRow(at: indexPath, animated: true)
 
         downloadAttachment(for: thread)
         threadSelectionDelegate?.didSelect(thread)
@@ -154,8 +157,10 @@ extension FolderViewController {
             [weak self] response in
             print(response)
             DispatchQueue.main.async {
-                self?.refreshControl.endRefreshing()
-                self?.syncHappening = false
+                guard let self = self else { return }
+                self.refreshControl.endRefreshing()
+                self.syncHappening = false
+                self.emptyView.isHidden = !self.dataSource.isEmpty
             }
         })
     }

@@ -82,8 +82,10 @@ extension ThreadDetailViewController {
     private func setupEmptyView() {
         unselectedIndicatorLabel = UILabel()
         unselectedIndicatorLabel.text = "Select a thread to view"
+        unselectedIndicatorLabel.numberOfLines = 0
         view.addSubview(unselectedIndicatorLabel)
         unselectedIndicatorLabel.center(in: view)
+        unselectedIndicatorLabel.isHidden = (threadMO != nil)
     }
 
     private func setupNavigationBar() {
@@ -100,6 +102,7 @@ extension ThreadDetailViewController {
     }
 
     func configure(with threadMO: ThreadMO) {
+        hideUnselectedIndicator()
         self.threadMO = threadMO
         threadVM = .init(from: threadMO)
         reloadData()
@@ -108,8 +111,11 @@ extension ThreadDetailViewController {
     private func reloadData() {
         title = threadVM?.messages.first?.subject
         subjectHeader?.text = title ?? "No Subject"
-        unselectedIndicatorLabel?.isHidden = true
         tableView?.reloadData()
+    }
+
+    private func hideUnselectedIndicator() {
+        unselectedIndicatorLabel?.isHidden = true
     }
 }
 
@@ -179,7 +185,7 @@ extension ThreadDetailViewController: UITableViewDelegate {
 
         let messageId = message.id
         let attachmentsView = AttachmentsView()
-        attachmentsView.tag = section
+        attachmentsView.collectionView.tag = section
         attachmentsView.collectionView.delegate = self
 
         guard let dataSource = attachmentDataSource[messageId] else {
@@ -226,6 +232,7 @@ extension ThreadDetailViewController: CollectionViewDataSourceDelegate {
 extension ThreadDetailViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt _: IndexPath) {
         let section = collectionView.tag
+        print("tag=\(section)")
         let vc = AttachmentPreviewController(message: threadMO!.messages[section] as! MessageMO)
         navigationController?.pushViewController(vc, animated: true)
     }
